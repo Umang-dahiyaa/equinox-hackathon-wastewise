@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wastewise",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/simdjson/4.6.7/lib exec /opt/homebrew/bin/node node_modules/vite/bin/vite.js --port 5174 --strictPort"
+      ],
+      "port": 5174
+    }
+  ]
+}

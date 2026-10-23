@@ -1,0 +1,116 @@
+import { useState } from "react"
+import { ArrowLeft, ScanLine } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Mark } from "@/components/ui/card"
+import { LuluMascot } from "@/components/ui/LuluMascot"
+import { LevelBadge } from "@/components/brand"
+import { Avatar, BoardList, NotConnectedNote, YouRankLine } from "@/components/widgets"
+import { useLeaderboard, useMyRank } from "@/hooks/useLeaderboard"
+import { useStats } from "@/hooks/useStats"
+import type { BoardRow, BoardTab } from "@/lib/leaderboard"
+import { cn } from "@/lib/utils"
+import { useApp } from "@/state/AppContext"
+
+const RINGS = ["#E9B949", "#C0C6CC", "#C98A5B"]
+
+export function LeaderboardScreen() {
+  const { navigate, uid, profile } = useApp()
+  const [tab, setTab] = useState<BoardTab>("week")
+  const { rows, loading, error, connected } = useLeaderboard(tab, 50)
+  const rank = useMyRank(tab, rows)
+  const s = useStats()
+  const podium = rows.slice(0, 3)
+  const rest = rows.slice(3)
+
+  return (
+    <div className="px-4 pt-4 pb-44 lg:mx-auto lg:max-w-[860px] lg:pt-8 lg:pb-28">
+      <header className="mb-4 flex items-center gap-2">
+        <Button variant="secondary" size="icon" aria-label="Back to Home" onClick={() => navigate({ name: "home" })}>
+          <ArrowLeft size={22} />
+        </Button>
+      </header>
+      <div className="ww-fade-up mb-5 flex items-center gap-3">
+        <span className="bg-mint grid shrink-0 aspect-square place-items-center overflow-hidden rounded-full p-1">
+          <LuluMascot mood="happy" size={56} />
+        </span>
+        <div>
+          <h1 className="display text-[34px] leading-tight">Campus Eco Leaderboard</h1>
+          <Mark className="mt-1 text-sm">Sort right, climb higher 🌱</Mark>
+        </div>
+      </div>
+
+      <div className="pill-glass mb-5 grid grid-cols-2 p-1" role="tablist">
+        {(["week", "all"] as const).map((t) => (
+          <button
+            key={t}
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setTab(t)}
+            className={cn("h-11 rounded-full text-sm font-semibold transition-colors", tab === t ? "bg-white text-ink shadow-soft" : "text-ink")}
+          >
+            {t === "week" ? "This Week" : "All Time"}
+          </button>
+        ))}
+      </div>
+
+      {!connected ? (
+        <NotConnectedNote />
+      ) : loading ? (
+        <p className="on-sky py-10 text-center text-sm font-semibold">Loading leaderboard…</p>
+      ) : error ? (
+        <p className="glass px-5 py-6 text-center text-sm">{error}</p>
+      ) : rows.length === 0 ? (
+        <div className="ww-fade-up flex flex-col items-center glass px-6 py-10 text-center">
+          <p className="text-sm text-sub">{tab === "week" ? "No one has scored yet this week. Be the first! 🚀" : "No one has scored yet. Be the first! 🚀"}</p>
+          <Button className="mt-4" onClick={() => navigate({ name: "scan" })}>
+            <ScanLine size={18} /> Scan an item
+          </Button>
+        </div>
+      ) : (
+        <>
+          <Podium rows={podium} uid={uid} />
+          {rest.length > 0 && (
+            <div className="mt-5">
+              <BoardList rows={rest} startRank={4} highlightUid={uid} />
+            </div>
+          )}
+        </>
+      )}
+
+      {connected && profile && (
+        <div className="fixed inset-x-0 bottom-[84px] z-30 mx-auto w-full max-w-[480px] px-4 md:max-w-[720px] lg:bottom-6 lg:max-w-[860px]">
+          <YouRankLine rank={rank} points={tab === "week" ? s.weeklyPoints : s.points} className="shadow-lift" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Podium({ rows, uid }: { rows: BoardRow[]; uid: string | null }) {
+  // 2nd · 1st · 3rd, with 1st centred and taller
+  const order = [rows[1], rows[0], rows[2]]
+  const heights = ["h-24", "h-32", "h-20"]
+  const places = [2, 1, 3]
+  return (
+    <div className="grid grid-cols-3 items-end gap-2">
+      {order.map((r, i) =>
+        r ? (
+          <div key={r.uid} className="ww-pop flex flex-col items-center text-center" style={{ animationDelay: `${i * 60}ms` }}>
+            <Avatar emoji={r.avatar} size={places[i] === 1 ? 60 : 48} ring={RINGS[places[i] - 1]} />
+            <span className={cn("on-sky mt-2 w-full truncate text-sm font-semibold", r.uid === uid && "text-green")}>
+              {r.displayName}
+              {r.uid === uid && " (You)"}
+            </span>
+            <LevelBadge points={r.points} className="mt-1" />
+            <span className="on-sky mt-1 text-xs font-bold">{r.value} pts</span>
+            <div className={cn("mt-2 flex w-full items-start justify-center rounded-t-[16px] border-[3px] border-b-0 border-white pt-2 font-display text-3xl text-white", heights[i])} style={{ background: RINGS[places[i] - 1] }}>
+              {places[i]}
+            </div>
+          </div>
+        ) : (
+          <div key={i} />
+        )
+      )}
+    </div>
+  )
+}

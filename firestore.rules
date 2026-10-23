@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// WasteWise — profiles and points only. Scan history never leaves the device.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function validName(n) {
+      return n is string && n.size() >= 3 && n.size() <= 16 && n.matches('^[A-Za-z0-9_ ]+$');
+    }
+
+    match /users/{uid} {
+      // Public leaderboard: anyone can read visible users; hidden users can read themselves.
+      allow read: if resource.data.showOnLeaderboard == true
+                  || (signedIn() && request.auth.uid == uid);
+
+      allow create: if signedIn() && request.auth.uid == uid
+                    && validName(request.resource.data.displayName)
+                    && request.resource.data.points == 0
+                    && request.resource.data.weeklyPoints == 0
+                    && request.resource.data.showOnLeaderboard is bool;
+
+      // Points only go up, by at most 25 per write. weeklyPoints may reset when the week changes.
+      allow update: if signedIn() && request.auth.uid == uid
+                    && validName(request.resource.data.displayName)
+                    && request.resource.data.points is int
+                    && request.resource.data.points >= resource.data.points
+                    && request.resource.data.points - resource.data.points <= 25
+                    && request.resource.data.weeklyPoints is int
+                    && request.resource.data.weeklyPoints <= request.resource.data.points
+                    && request.resource.data.weeklyPoints
+                         - (request.resource.data.weekId == resource.data.weekId ? resource.data.weeklyPoints : 0) >= 0
+                    && request.resource.data.weeklyPoints
+                         - (request.resource.data.weekId == resource.data.weekId ? resource.data.weeklyPoints : 0) <= 25;
+
+      allow delete: if false;
+    }
+
+    // Nickname reservations, so duplicates get a number ("GreenMadhav_2").
+    match /nicknames/{name} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+                    && name.size() >= 3 && name.size() <= 16;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+  }
+}

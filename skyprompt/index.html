@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skyprompt — Prompt-to-Pixel Art, No Cost!</title>
+<meta name="description" content="Skyprompt: an online course on AI image generation. Turn plain words into images you love, lesson by lesson.">
+
+<link rel="preload" href="../hero/fonts/dm-serif-display-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../hero/fonts/poppins-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../hero/fonts/poppins-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="/media/scene-poster.jpg">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAV: pinned to the viewport edges, sized by --n -->
+<header class="nav">
+  <a class="logo" href="#" aria-label="Skyprompt home">
+    <svg viewBox="0 0 44 44" aria-hidden="true">
+      <g fill="#fff" transform="translate(22 22)">
+        <ellipse rx="5.4" ry="10" cy="-10.5"/>
+        <ellipse rx="5.4" ry="10" cy="-10.5" transform="rotate(60)"/>
+        <ellipse rx="5.4" ry="10" cy="-10.5" transform="rotate(120)"/>
+        <ellipse rx="5.4" ry="10" cy="-10.5" transform="rotate(180)"/>
+        <ellipse rx="5.4" ry="10" cy="-10.5" transform="rotate(240)"/>
+        <ellipse rx="5.4" ry="10" cy="-10.5" transform="rotate(300)"/>
+      </g>
+      <circle cx="22" cy="22" r="4.2" fill="#3195e0"/>
+    </svg>
+  </a>
+
+  <nav class="nav-links" aria-label="Main navigation">
+    <a href="#story">Story</a>
+    <a href="#study-plan">Study Plan</a>
+    <a href="#showcase">Showcase</a>
+    <a href="#classroom">Classroom</a>
+    <a href="#qa">Q&amp;A</a>
+  </nav>
+
+  <a class="nav-x" href="#" aria-label="Skyprompt on X">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#fff" d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.3L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z"/>
+    </svg>
+  </a>
+
+  <a class="nav-pill" href="#begin">Begin the Journey</a>
+
+  <button class="nav-menu" type="button" aria-label="Open menu">
+    <span></span><span></span>
+  </button>
+</header>
+
+<main class="stage">
+
+  <!-- COPY: its own 1440×900 frame on desktop, plain flow on phones -->
+  <section class="frame frame-copy" aria-label="Intro">
+    <span class="hl hl-begin" id="hlBegin"><span>Begin</span></span>
+    <h1 class="headline" id="headline">Prompt-to-Pixel Art</h1>
+    <span class="hl hl-nocost" id="hlNoCost"><span>No Cost!</span></span>
+    <p class="subline" id="subline">
+      Turn plain words into images you love — lesson<br>
+      by lesson, from first idea to finished piece.
+    </p>
+  </section>
+
+  <!-- SCENE: plate, (video later), cards, labels, CTA -->
+  <div class="scene-wrap">
+    <div class="frame frame-scene">
+
+      <div class="scene" aria-hidden="true">
+        <!-- still frame of the scene video: shown while it loads and when motion is reduced -->
+        <img class="scene-plate" src="/media/scene-poster.jpg" alt="" width="1280" height="720">
+        <!-- the looping scene video is injected here by script.js -->
+      </div>
+
+      <ul class="cards" aria-label="Student artwork">
+        <li class="card" style="--x:472; --y:419; --r:-12deg">
+          <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/37b0e4f8-9780-409b-9aa4-f855a9a4ef24.webp"
+            alt="A cottage on a sea cliff">
+        </li>
+        <li class="card" style="--x:601; --y:407; --r:-4deg">
+          <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/02be94e0-6903-4edd-b5ec-a10eb62d166e.webp"
+            alt="An orange kitten in a blue beanie and scarf">
+        </li>
+        <li class="card" style="--x:711; --y:409; --r:4deg">
+          <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/73e9f810-8b43-4548-a4b1-830b1b99cdfd.webp"
+            alt="A smiling succulent in a terracotta pot">
+        </li>
+        <li class="card" style="--x:827; --y:419; --r:12deg">
+          <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/fde79b9a-ae7c-439f-9a96-f727754defb7.webp"
+            alt="A golden retriever in a cowboy hat and red bandana">
+        </li>
+      </ul>
+
+      <span class="hl hl-label hl-zero-start"><span>Starts from Zero!</span></span>
+      <span class="hl hl-label hl-results"><span>Real Client Results</span></span>
+
+      <!-- hand-drawn arrows, drawn in frame coordinates -->
+      <svg class="arrows" viewBox="0 0 1440 900" aria-hidden="true">
+        <defs>
+          <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="4"/>
+            <feDisplacementMap in="SourceGraphic" scale="2.6"/>
+          </filter>
+        </defs>
+        <g filter="url(#rough)">
+          <!-- Starts from Zero! → first card -->
+          <path d="M378 446 C368 482 398 510 462 503"/>
+          <path d="M462 503 L447 493 M462 503 L449 515"/>
+
+          <!-- Real Client Results → up to the dog card -->
+          <path d="M1004 514 C1016 484 1000 456 972 452"/>
+          <path d="M972 452 L985 443 M972 452 L984 464"/>
+
+          <!-- Real Client Results → double arrow curling down to the CTA -->
+          <path d="M1020 554 C1014 602 950 634 836 640"/>
+          <path d="M1031 558 C1026 614 956 648 838 652"/>
+          <path d="M836 640 L851 630 M836 640 L850 650"/>
+          <path d="M838 652 L852 642 M838 652 L851 663"/>
+        </g>
+      </svg>
+
+      <div class="cta" id="begin">
+        <span class="hl hl-zerocost"><span>Zero Cost</span></span>
+        <a class="cta-pill" href="#study-plan">Begin the Journey</a>
+        <p class="cta-note">No art skills needed to start.</p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script type="module" src="./script.js"></script>
+</body>
+</html>
