@@ -87,6 +87,27 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
     }
   }
 
+  const scanAgain = async () => {
+    if (outcome && outcome.kind !== "clarify" && !saving) {
+      setSaving(true)
+      try {
+        await finishScan({ input, outcome, originalAi })
+      } catch (err) {
+        console.warn("Auto-save before scanning again:", err)
+      }
+      setSaving(false)
+    }
+
+    const img = await capture("camera")
+    if (img) {
+      setInput(emptyInput(img))
+      setOutcome(null)
+      setOriginalAi(null)
+      setError(null)
+      setStage("preview")
+    }
+  }
+
   const gotIt = async () => {
     if (!outcome || outcome.kind === "clarify") return
     setSaving(true)
@@ -97,11 +118,23 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
 
   return (
     <div className="px-4 pt-4 pb-32 lg:mx-auto lg:max-w-[960px] lg:pt-8 lg:pb-16">
-      <header className="mb-4 flex items-center gap-2">
-        <Button variant="secondary" size="icon" aria-label="Back to Home" onClick={() => navigate({ name: "home" })}>
-          <ArrowLeft size={22} />
+      <header className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="icon" aria-label="Back to Home" onClick={() => navigate({ name: "home" })}>
+            <ArrowLeft size={22} />
+          </Button>
+          <h1 className="display text-3xl">{stage === "pick" ? "Scan an item" : stage === "result" ? "Your answer" : "Scan"}</h1>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={scanAgain}
+          aria-label="Scan again immediately with camera"
+          className="ww-press pill-glass flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
+        >
+          <Camera size={16} className="text-green" />
+          <span>Scan Again</span>
         </Button>
-        <h1 className="display text-3xl">{stage === "pick" ? "Scan an item" : stage === "result" ? "Your answer" : "Scan"}</h1>
       </header>
 
       {stage === "pick" && (
@@ -158,7 +191,7 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
                   <Camera size={18} /> Try a clearer photo
                 </Button>
               )}
-              <ResultActions busy={saving} onGotIt={gotIt} onCorrect={() => setCorrecting(true)} onScanAnother={reset} />
+              <ResultActions busy={saving} onGotIt={gotIt} onCorrect={() => setCorrecting(true)} onScanAnother={reset} onScanAgain={scanAgain} />
             </div>
           }
         />

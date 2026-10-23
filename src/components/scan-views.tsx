@@ -265,11 +265,11 @@ export function ErrorCard({ onRetry, message, compact }: { onRetry: () => void; 
   )
 }
 
-/** "✏️ That's not right" · "✅ Got it" · "Scan another" */
 export function ResultActions({
   onCorrect,
   onGotIt,
   onScanAnother,
+  onScanAgain,
   saved,
   busy,
   compact,
@@ -277,14 +277,20 @@ export function ResultActions({
   onCorrect?: () => void
   onGotIt: () => void
   onScanAnother?: () => void
+  onScanAgain?: () => void
   saved?: boolean
   busy?: boolean
   compact?: boolean
 }) {
   return (
-    <div className={cn("grid gap-2", compact ? "mt-1 grid-cols-2" : "mt-2 lg:grid-cols-[2fr_1fr_1fr]")}>
-      <Button onClick={onGotIt} disabled={saved || busy} className={compact ? "col-span-2" : ""} size={compact ? "sm" : "lg"}>
-        <CircleCheck size={18} /> {saved ? "Saved" : "Got it"}
+    <div className={cn("grid gap-2", compact ? "mt-1 grid-cols-2" : "mt-2 sm:grid-cols-2 lg:grid-cols-4")}>
+      {onScanAgain && (
+        <Button onClick={onScanAgain} disabled={busy} size={compact ? "sm" : "lg"} className="bg-green hover:bg-green-2 text-white">
+          <Camera size={18} /> Scan Again
+        </Button>
+      )}
+      <Button onClick={onGotIt} disabled={saved || busy} variant={onScanAgain ? "outline" : "primary"} className={compact && !onScanAgain ? "col-span-2" : ""} size={compact ? "sm" : "lg"}>
+        <CircleCheck size={18} /> {saved ? "Saved" : "Done"}
       </Button>
       {onCorrect && !saved && (
         <Button variant="outline" onClick={onCorrect} disabled={busy} size={compact ? "sm" : "md"}>
@@ -293,7 +299,7 @@ export function ResultActions({
       )}
       {onScanAnother && (
         <Button variant="ghost" onClick={onScanAnother} size={compact ? "sm" : "md"}>
-          <ScanLine size={16} /> Scan another
+          <ScanLine size={16} /> Pick / Describe
         </Button>
       )}
     </div>
