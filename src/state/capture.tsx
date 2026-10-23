@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { Camera, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ImageError, prepareFromVideo, prepareImageFile } from "@/lib/image"
+import { playShutterSound } from "@/lib/sound"
 import type { ImageInput } from "@/lib/types"
 import { useApp } from "@/state/AppContext"
 
@@ -52,7 +53,9 @@ export function CaptureProvider({ children }: { children: ReactNode }) {
       e.target.value = ""
       if (!file) return settle(null)
       try {
-        settle(await prepareImageFile(file))
+        const prepared = await prepareImageFile(file)
+        playShutterSound()
+        settle(prepared)
       } catch (err) {
         toast(err instanceof ImageError ? err.message : "Couldn't read that image. Please try another photo.", "error")
         settle(null)
@@ -157,7 +160,12 @@ function LiveCamera({
             variant="light"
             size="lg"
             disabled={!ready}
-            onClick={() => videoRef.current && onCapture(prepareFromVideo(videoRef.current))}
+            onClick={() => {
+              if (videoRef.current) {
+                playShutterSound()
+                onCapture(prepareFromVideo(videoRef.current))
+              }
+            }}
           >
             <Camera size={20} /> Capture
           </Button>

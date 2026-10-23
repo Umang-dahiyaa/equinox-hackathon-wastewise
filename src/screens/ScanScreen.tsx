@@ -5,6 +5,7 @@ import { IdentifyCard } from "@/components/identify-card"
 import { AnalysisView, ClarificationCard, CorrectionSheet, ErrorCard, OutcomeView, ResultActions } from "@/components/scan-views"
 import { AIError } from "@/lib/gemini"
 import { runIdentification } from "@/lib/flow"
+import { playScanSuccessSound } from "@/lib/sound"
 import type { ImageInput, Outcome, ScanAI, ScanInput } from "@/lib/types"
 import { useApp, type ScanStart } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
@@ -46,6 +47,7 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
       setOutcome(out)
       // the AI's own identification (after any clarifications), kept separately from a correction
       if (!next.correctedItem && out.ai) setOriginalAi(out.ai)
+      if (out.kind === "result") playScanSuccessSound()
       setStage(out.kind === "clarify" ? "clarify" : "result")
     } catch (err) {
       if (id !== runId.current) return
