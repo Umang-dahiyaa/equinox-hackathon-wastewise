@@ -12,6 +12,7 @@ import {
   Eye,
   CheckCircle2,
   Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import type { DumpReport, HeatmapPoint } from '../types.ts';
 
@@ -48,6 +49,8 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'uncleaned' | 'dispatched' | 'cleaned'>('uncleaned');
   const [selectedDump, setSelectedDump] = useState<DumpReport | null>(null);
   const [locatingUser, setLocatingUser] = useState(false);
+  const [nearbyFacilities, setNearbyFacilities] = useState<Array<{ title: string; uri: string; snippets: string[] }>>([]);
+  const [loadingFacilities, setLoadingFacilities] = useState(false);
 
   // Filtered dumps
   const filteredDumps = dumps.filter((d) => {
@@ -147,6 +150,7 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
 
       marker.on('click', () => {
         setSelectedDump(dump);
+        setNearbyFacilities([]);
       });
 
       group.addLayer(marker);
@@ -625,6 +629,66 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
                   Mark Cleaned
                 </button>
               </div>
+            </div>
+
+            {/* Google Maps Grounded Nearby Facilities */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Nearby Recycling Centers (Google Maps)
+                </span>
+                <button
+                  onClick={async () => {
+                    try {
+                      setLoadingFacilities(true);
+                      const res = await fetch('/api/nearby-facilities', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          lat: selectedDump.location.lat,
+                          lng: selectedDump.location.lng,
+                          address: selectedDump.location.address,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (data.success && data.places) {
+                        setNearbyFacilities(data.places);
+                      }
+                    } catch (e) {
+                      console.error(e);
+                    } finally {
+                      setLoadingFacilities(false);
+                    }
+                  }}
+                  disabled={loadingFacilities}
+                  className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-800 underline"
+                >
+                  {loadingFacilities ? 'Searching Maps...' : 'Find Facilities'}
+                </button>
+              </div>
+
+              {nearbyFacilities.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {nearbyFacilities.map((facility, i) => (
+                    <div key={i} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+                      <a
+                        href={facility.uri}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-emerald-700 hover:text-emerald-900 hover:underline flex items-center gap-1 leading-snug"
+                      >
+                        <span>{facility.title}</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                      {facility.snippets && facility.snippets.length > 0 && (
+                        <p className="text-[11px] text-slate-600 leading-tight italic">
+                          "{facility.snippets[0]}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ) : (
