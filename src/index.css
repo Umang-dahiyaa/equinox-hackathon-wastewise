@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* Custom map styling & smooth canvas transitions */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  font-family: inherit;
+}
+
+/* Custom modern pulsed markers */
+.custom-pin-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Heatmap canvas layer */
+.density-canvas-layer {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 250;
+  mix-blend-mode: multiply;
+}

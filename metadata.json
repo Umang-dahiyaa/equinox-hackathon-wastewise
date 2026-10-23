@@ -1,0 +1,6 @@
+{
+  "name": "WasteWise - Illegal Dump Reporting & Municipal Heatmap",
+  "description": "Citizen roadside dump reporting with AI waste analysis, official municipal government dispatch, and sweeper crew density heatmaps.",
+  "requestFramePermissions": ["geolocation", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
