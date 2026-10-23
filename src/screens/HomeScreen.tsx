@@ -1,4 +1,4 @@
-import { BrainCircuit, History, MessageCircle, Trophy, UserRound } from "lucide-react"
+import { BrainCircuit, Camera, History, MessageCircle, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, Note, SectionTitle } from "@/components/ui/card"
 import { CampusGlobe } from "@/components/campus-globe"
@@ -8,10 +8,23 @@ import { IdentifyCard } from "@/components/identify-card"
 import { EcoTrackingCard, HistoryRow, LeaderboardPreviewCard } from "@/components/widgets"
 import { uuid } from "@/lib/utils"
 import { useApp } from "@/state/AppContext"
+import { useCapture } from "@/state/capture"
 
 export function HomeScreen() {
   const { navigate, history, setChatOpen, toast } = useApp()
+  const capture = useCapture()
   const recent = history.slice(0, 3)
+
+  const handleCameraScan = async () => {
+    try {
+      const img = await capture("camera")
+      if (img) {
+        navigate({ name: "scan", start: { key: uuid(), image: img } })
+      }
+    } catch {
+      navigate({ name: "scan" })
+    }
+  }
 
   return (
     <div className="space-y-4 px-4 pt-4 pb-28 lg:grid lg:grid-cols-12 lg:items-stretch lg:gap-6 lg:space-y-0 lg:pt-8 lg:pb-16">
@@ -121,6 +134,20 @@ export function HomeScreen() {
 
       {/* 9. Leaderboard preview */}
       <LeaderboardPreviewCard index={8} className="lg:col-span-4" />
+
+      {/* 10. Floating Action Button — Scan with Camera */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[84px] z-40 mx-auto flex w-full max-w-[480px] items-center justify-center px-4 md:max-w-[720px] lg:bottom-8 lg:max-w-none lg:justify-end lg:pr-28">
+        <button
+          onClick={handleCameraScan}
+          aria-label="Scan object with camera"
+          className="ww-press lift pill pointer-events-auto flex items-center gap-2.5 rounded-full bg-green px-5 py-3.5 text-white shadow-[0_10px_30px_rgba(8,72,45,0.4)] border border-mint/25 hover:bg-green-2 transition-all hover:scale-105 active:scale-95"
+        >
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-mint">
+            <Camera size={18} strokeWidth={2.4} />
+          </span>
+          <span className="text-[14px] font-bold tracking-tight">Scan Object</span>
+        </button>
+      </div>
     </div>
   )
 }
