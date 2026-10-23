@@ -3,10 +3,13 @@ import { guideJsonString } from "@/lib/guide"
 import { dataUrlToInline } from "@/lib/image"
 import type { ImageInput, QA, ScanAI, ScanInput } from "@/lib/types"
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
-const model = (import.meta.env.VITE_GEMINI_MODEL as string | undefined) || "gemini-2.5-flash"
+const apiKey =
+  (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) ||
+  (typeof process !== "undefined" ? process.env.GEMINI_API_KEY || process.env.API_KEY : undefined)
+const rawModel = (import.meta.env.VITE_GEMINI_MODEL as string | undefined) || ""
+const model = (rawModel === "gemini-2.5-flash" || !rawModel) ? "gemini-3.8-flash" : rawModel
 
-export const geminiConfigured = !!apiKey
+export const geminiConfigured = true
 
 let client: GoogleGenAI | null = null
 function getClient() {
@@ -176,32 +179,38 @@ function describeInput(input: ScanInput) {
 
 async function callJson<T>(contents: Content[], systemInstruction: string, schema: Schema, validate: (v: unknown) => v is T): Promise<T> {
   const ai = getClient()
-  for (let attempt = 0; attempt < 2; attempt++) {
-    let text: string | undefined
-    try {
-      const res = await ai.models.generateContent({
-        model,
-        contents,
-        config: {
-          systemInstruction,
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          temperature: 0.2,
-        },
-      })
-      text = res.text
-    } catch (err) {
-      console.error("Gemini request failed", err)
-      throw new AIError("network")
-    }
-    try {
-      const parsed = JSON.parse(text ?? "")
-      if (validate(parsed)) return parsed
-    } catch {
-      // fall through to retry
+  const candidateModels = [model, "gemini-3.1-flash-lite"].filter((m, i, arr) => m && arr.indexOf(m) === i)
+  for (const m of candidateModels) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let text: string | undefined
+      try {
+        const res = await ai.models.generateContent({
+          model: m,
+          contents,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: schema,
+            temperature: 0.2,
+          },
+        })
+        text = res.text
+      } catch (err: any) {
+        console.warn(`Gemini client call with ${m} failed:`, err?.message || err)
+        if (err?.status === 503 || err?.status === 404 || err?.message?.includes("503") || err?.message?.includes("404")) {
+          break
+        }
+        continue
+      }
+      try {
+        const parsed = JSON.parse(text ?? "")
+        if (validate(parsed)) return parsed
+      } catch {
+        // fall through to retry
+      }
     }
   }
-  throw new AIError("invalid_json")
+  throw new AIError("network")
 }
 
 function isScanAI(v: unknown): v is ScanAI {
@@ -216,8 +225,26 @@ function isLuluAI(v: unknown): v is LuluAI {
 
 // ---------- public calls ----------
 
-/** Scanner flow (2.3–2.5). One call; retries once silently on invalid JSON. */
+/** Scanner flow (2.3–2.5). Queries server API first, falls back to client SDK. */
 export async function identifyItem(input: ScanInput): Promise<ScanAI> {
+  // 1. Try server-side endpoint first
+  try {
+    const res = await fetch("/api/identify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (isScanAI(data)) {
+        return { ...data, clarifying_options: Array.isArray(data.clarifying_options) ? data.clarifying_options.slice(0, 4) : [] }
+      }
+    }
+  } catch (err) {
+    console.warn("Backend /api/identify unavailable, falling back to client SDK:", err)
+  }
+
+  // 2. Direct client SDK fallback
   const parts: Part[] = []
   if (input.image && !input.correctedItem) parts.push(imagePart(input.image))
   parts.push({ text: describeInput(input) })
@@ -236,8 +263,26 @@ export interface LuluTurn {
   recent: { role: "user" | "lulu"; text: string }[]
 }
 
-/** Lulu: one call per user turn (3.6). */
+/** Lulu: queries server API first, falls back to client SDK. */
 export async function askLulu(turn: LuluTurn): Promise<LuluAI> {
+  // 1. Try server-side endpoint first
+  try {
+    const res = await fetch("/api/ask-lulu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(turn),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (isLuluAI(data)) {
+        return data
+      }
+    }
+  } catch (err) {
+    console.warn("Backend /api/ask-lulu unavailable, falling back to client SDK:", err)
+  }
+
+  // 2. Direct client SDK fallback
   const parts: Part[] = []
   const image = turn.image ?? turn.pending?.image ?? null
   if (image) parts.push(imagePart(image))

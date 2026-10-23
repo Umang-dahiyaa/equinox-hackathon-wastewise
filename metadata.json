@@ -1,0 +1,6 @@
+{
+  "name": "WasteWise",
+  "description": "AI waste-sorting assistant for the Zenith campus. Snap or describe any item and Lulu tells you which bin it goes in, straight from the campus waste guide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

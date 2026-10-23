@@ -11,8 +11,8 @@ service cloud.firestore {
 
     match /users/{uid} {
       // Public leaderboard: anyone can read visible users; hidden users can read themselves.
-      allow read: if resource.data.showOnLeaderboard == true
-                  || (signedIn() && request.auth.uid == uid);
+      allow read: if (signedIn() && request.auth.uid == uid)
+                  || (resource != null && resource.data.showOnLeaderboard == true);
 
       allow create: if signedIn() && request.auth.uid == uid
                     && validName(request.resource.data.displayName)

@@ -89,10 +89,23 @@ function firestoreStore(): ProfileStore {
       if (!uid) return () => {}
       return onSnapshot(
         userRef(),
-        (snap) => cb(snap.exists() ? (snap.data() as StoredProfile) : null),
+        (snap) => {
+          const profile = snap.exists() ? (snap.data() as StoredProfile) : null
+          if (profile) {
+            try {
+              localStorage.setItem(LOCAL_KEY, JSON.stringify(profile))
+            } catch {}
+          }
+          cb(profile)
+        },
         (err) => {
-          console.error("Profile listener failed", err)
-          cb(null)
+          console.warn("Firestore profile listener notice, using cached profile:", err?.message || err)
+          try {
+            const raw = localStorage.getItem(LOCAL_KEY)
+            cb(raw ? (JSON.parse(raw) as StoredProfile) : null)
+          } catch {
+            cb(null)
+          }
         }
       )
     },
@@ -105,6 +118,9 @@ function firestoreStore(): ProfileStore {
       const displayName = await reserveNickname(name)
       const profile = emptyProfile(displayName, avatar, show)
       await setDoc(userRef(), { ...profile, createdAt: serverTimestamp(), pointsReachedAt: serverTimestamp(), weeklyReachedAt: serverTimestamp() })
+      try {
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(profile))
+      } catch {}
       return profile
     },
     async updateSettings(patch) {
@@ -201,4 +217,82 @@ function localStore(): ProfileStore {
   }
 }
 
-export const profileStore: ProfileStore = firebaseConfigured ? firestoreStore() : localStore()
+function hybridStore(): ProfileStore {
+  const local = localStore()
+  if (!firebaseConfigured) return local
+
+  const fs = firestoreStore()
+  let useFallback = false
+
+  return {
+    get mode() {
+      return useFallback ? "local" : "firebase"
+    },
+    async init() {
+      try {
+        const id = await fs.init()
+        return id
+      } catch (err) {
+        console.warn("Firestore init failed, using local profile store:", err)
+        useFallback = true
+        return null
+      }
+    },
+    subscribe(cb) {
+      if (useFallback) return local.subscribe(cb)
+      return fs.subscribe(cb)
+    },
+    async fetch() {
+      if (useFallback) return local.fetch()
+      try {
+        const p = await fs.fetch()
+        return p ?? local.fetch()
+      } catch (err) {
+        console.warn("Firestore fetch failed, using local store:", err)
+        useFallback = true
+        return local.fetch()
+      }
+    },
+    async join(name, avatar, show) {
+      if (useFallback) return local.join(name, avatar, show)
+      try {
+        const p = await fs.join(name, avatar, show)
+        try {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(p))
+        } catch {}
+        return p
+      } catch (err) {
+        console.warn("Firestore join failed, falling back to local store:", err)
+        useFallback = true
+        return local.join(name, avatar, show)
+      }
+    },
+    async updateSettings(patch) {
+      if (useFallback) return local.updateSettings(patch)
+      try {
+        await fs.updateSettings(patch)
+        await local.updateSettings(patch).catch(() => {})
+      } catch (err) {
+        console.warn("Firestore updateSettings failed, falling back to local store:", err)
+        useFallback = true
+        return local.updateSettings(patch)
+      }
+    },
+    async award(action) {
+      if (useFallback) return local.award(action)
+      try {
+        const res = await fs.award(action)
+        try {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(res.after))
+        } catch {}
+        return res
+      } catch (err) {
+        console.warn("Firestore award failed, falling back to local store:", err)
+        useFallback = true
+        return local.award(action)
+      }
+    },
+  }
+}
+
+export const profileStore: ProfileStore = hybridStore()

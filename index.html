@@ -1,92 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>WasteWise — Sort smarter. Waste less.</title>
-<meta name="description" content="WasteWise: snap or describe any item and Lulu tells you which bin it goes in, straight from your campus waste guide.">
-<meta name="theme-color" content="#F5F8EF">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>WasteWise — Sort smarter. Waste less.</title>
+    <meta name="description" content="AI waste-sorting assistant for the Zenith campus. Snap or describe any item and Lulu tells you which bin it goes in, straight from the campus waste guide." />
+    <meta property="og:title" content="WasteWise — Sort smarter. Waste less." />
+    <meta property="og:description" content="AI waste-sorting assistant for the Zenith campus. Snap or describe any item and Lulu tells you which bin it goes in, straight from the campus waste guide." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#F5F8EF" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500&family=Inter+Tight:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/hero/style.css" />
+  </head>
+  <body>
+    <div class="frame" id="frame">
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="WasteWise home">
+          <svg class="leaf" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 4.5a11.5 11.5 0 1 0 11.2 8.8" fill="none" stroke="#08482D" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M27.8 8.4l-.5 5-4.8-1.4" fill="none" stroke="#08482D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10.5 21.5c0-6.4 4.3-10.2 10.8-10.2 0 6.4-3.9 10.7-10.8 10.2Z" fill="#08482D"/>
+            <path d="M12.2 19.9c2.2-2.6 4.3-4.3 7-5.9" stroke="#DAE7C7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span>WasteWise</span>
+        </a>
+        <nav class="nav" aria-label="Main navigation">
+          <a href="/app.html#scan">Scan</a>
+          <a href="/app.html#guide">Waste Guide</a>
+          <a href="/app.html#leaderboard">Leaderboard</a>
+          <a href="/app.html#lulu">Meet Lulu</a>
+          <a href="/app.html#history">History</a>
+        </nav>
+        <a class="pill login" href="/app.html#lulu">Ask Lulu</a>
+        <a class="pill signup" href="/app.html">Open app</a>
+      </header>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500&family=Inter+Tight:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hero/style.css">
-</head>
+      <!-- COPY -->
+      <section class="copy">
+        <p class="badge" id="badge">AI waste sorting, backed by the guide</p>
+        <h1 class="headline">
+          <span class="line line-1">Sort Smarter.</span>
+          <span class="line line-2">Waste Less.</span>
+        </h1>
+        <p class="subline" id="subline">
+          Snap a photo or describe any item, and Lulu tells you<br>
+          which bin it goes in, straight from the campus waste<br>
+          guide, with the exact rule to back it up.
+        </p>
+      </section>
 
-<body>
-<div class="frame" id="frame">
-
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="WasteWise home">
-      <svg class="leaf" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 4.5a11.5 11.5 0 1 0 11.2 8.8" fill="none" stroke="#08482D" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M27.8 8.4l-.5 5-4.8-1.4" fill="none" stroke="#08482D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M10.5 21.5c0-6.4 4.3-10.2 10.8-10.2 0 6.4-3.9 10.7-10.8 10.2Z" fill="#08482D"/>
-        <path d="M12.2 19.9c2.2-2.6 4.3-4.3 7-5.9" stroke="#DAE7C7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- HAND-DRAWN NOTES -->
+      <svg class="doodle slashes" viewBox="0 0 52 45" aria-hidden="true">
+        <path class="draw" pathLength="1" d="M15 6 L5 34"/>
+        <path class="draw" pathLength="1" d="M31 3 L19 39"/>
+        <path class="draw" pathLength="1" d="M48 9 L35 37"/>
       </svg>
-      <span>WasteWise</span>
-    </a>
+      <p class="note note-seen" aria-hidden="true">Snap it,<br>sort it!</p>
+      <svg class="doodle arrow-seen" viewBox="0 0 150 230" aria-hidden="true">
+        <path class="draw" pathLength="1" d="M62 6 C88 38 140 52 128 104 C118 146 56 140 48 180 C44 198 52 212 66 222"/>
+        <path class="draw" pathLength="1" d="M66 222 L46 214 M66 222 L66 200"/>
+      </svg>
 
-    <nav class="nav" aria-label="Main navigation">
-      <a href="/app.html#scan">Scan</a>
-      <a href="/app.html#guide">Waste Guide</a>
-      <a href="/app.html#leaderboard">Leaderboard</a>
-      <a href="/app.html#lulu">Meet Lulu</a>
-      <a href="/app.html#history">History</a>
-    </nav>
+      <!-- CURVED VIDEO CAROUSEL -->
+      <section class="band" id="band" aria-label="Items from the campus waste guide — drag to browse">
+        <div class="track" id="track"></div>
+      </section>
 
-    <a class="pill login" href="/app.html#lulu">Ask Lulu</a>
-    <a class="pill signup" href="/app.html">Open app</a>
-  </header>
-
-  <!-- COPY -->
-  <section class="copy">
-    <p class="badge" id="badge">AI waste sorting, backed by the guide</p>
-    <h1 class="headline">
-      <span class="line line-1">Sort Smarter.</span>
-      <span class="line line-2">Waste Less.</span>
-    </h1>
-    <p class="subline" id="subline">
-      Snap a photo or describe any item, and Lulu tells you<br>
-      which bin it goes in, straight from the campus waste<br>
-      guide, with the exact rule to back it up.
-    </p>
-  </section>
-
-  <!-- HAND-DRAWN NOTES -->
-  <svg class="doodle slashes" viewBox="0 0 52 45" aria-hidden="true">
-    <path class="draw" pathLength="1" d="M15 6 L5 34"/>
-    <path class="draw" pathLength="1" d="M31 3 L19 39"/>
-    <path class="draw" pathLength="1" d="M48 9 L35 37"/>
-  </svg>
-
-  <p class="note note-seen" aria-hidden="true">Snap it,<br>sort it!</p>
-  <svg class="doodle arrow-seen" viewBox="0 0 150 230" aria-hidden="true">
-    <path class="draw" pathLength="1" d="M62 6 C88 38 140 52 128 104 C118 146 56 140 48 180 C44 198 52 212 66 222"/>
-    <path class="draw" pathLength="1" d="M66 222 L46 214 M66 222 L66 200"/>
-  </svg>
-
-  <!-- CURVED VIDEO CAROUSEL -->
-  <section class="band" id="band" aria-label="Items from the campus waste guide — drag to browse">
-    <div class="track" id="track"></div>
-  </section>
-
-  <!-- CALL TO ACTION -->
-  <div class="cta">
-    <div class="cta-ring" id="ctaRing">
-      <a class="cta-pill" href="/app.html#scan">Start sorting</a>
+      <!-- CALL TO ACTION -->
+      <div class="cta">
+        <div class="cta-ring" id="ctaRing">
+          <a class="cta-pill" href="/app.html#scan">Start sorting</a>
+        </div>
+      </div>
+      <p class="note note-zero" aria-hidden="true">No sign-up</p>
+      <svg class="doodle arrow-zero" viewBox="0 0 90 44" aria-hidden="true">
+        <path class="draw" pathLength="1" d="M4 8 C24 6 34 18 52 23 C62 26 70 26 80 25"/>
+        <path class="draw" pathLength="1" d="M80 25 L68 16 M80 25 L69 34"/>
+      </svg>
     </div>
-  </div>
-
-  <p class="note note-zero" aria-hidden="true">No sign-up</p>
-  <svg class="doodle arrow-zero" viewBox="0 0 90 44" aria-hidden="true">
-    <path class="draw" pathLength="1" d="M4 8 C24 6 34 18 52 23 C62 26 70 26 80 25"/>
-    <path class="draw" pathLength="1" d="M80 25 L68 16 M80 25 L69 34"/>
-  </svg>
-</div>
-
-<script type="module" src="/hero/script.js"></script>
-</body>
+    <script type="module" src="/hero/script.js"></script>
+  </body>
 </html>

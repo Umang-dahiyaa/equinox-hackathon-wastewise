@@ -1,23 +1,38 @@
-import path from "node:path"
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
-import tailwindcss from "@tailwindcss/vite"
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import {defineConfig} from 'vite';
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-  build: {
-    rollupOptions: {
-      input: {
-        // "/" — the Skyprompt hero (plain HTML/CSS/JS in hero/)
-        main: path.resolve(__dirname, "index.html"),
-        // "/app.html" — the WasteWise React app
-        app: path.resolve(__dirname, "app.html"),
+export default defineConfig(() => {
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
       },
     },
-  },
-})
+    define: {
+      'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY ?? ''),
+      'process.env.API_KEY': JSON.stringify(process.env.API_KEY ?? ''),
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          app: path.resolve(__dirname, 'app.html'),
+        },
+      },
+    },
+    server: {
+      host: '0.0.0.0',
+      port: 3000,
+      allowedHosts: true as const,
+      // HMR is disabled in AI Studio via DISABLE_HMR env var.
+      // Do not modify—file watching is disabled to prevent flickering during agent edits.
+      hmr: process.env.DISABLE_HMR !== 'true',
+      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
+      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+    },
+  };
+});
+

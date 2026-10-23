@@ -27,19 +27,40 @@ if (firebaseConfigured) {
 export { db }
 
 /** Signs the device in anonymously (no sign-up form) and resolves its uid. */
-export function ensureAnonymousUser(): Promise<string> {
-  if (!auth) return Promise.reject(new Error("Firebase is not configured"))
+export async function ensureAnonymousUser(): Promise<string> {
+  if (!auth) throw new Error("Firebase is not configured")
   const a = auth
+  if (a.currentUser) {
+    try {
+      await a.currentUser.getIdToken(false)
+      return a.currentUser.uid
+    } catch {
+      await a.signOut().catch(() => {})
+    }
+  }
   return new Promise((resolve, reject) => {
+    let resolved = false
     const unsub = onAuthStateChanged(a, (user) => {
-      if (user) {
+      if (user && !resolved) {
+        resolved = true
         unsub()
         resolve(user.uid)
       }
     })
-    if (!a.currentUser) signInAnonymously(a).catch((err) => {
-      unsub()
-      reject(err)
-    })
+    signInAnonymously(a)
+      .then((cred) => {
+        if (!resolved) {
+          resolved = true
+          unsub()
+          resolve(cred.user.uid)
+        }
+      })
+      .catch((err) => {
+        if (!resolved) {
+          resolved = true
+          unsub()
+          reject(err)
+        }
+      })
   })
 }
