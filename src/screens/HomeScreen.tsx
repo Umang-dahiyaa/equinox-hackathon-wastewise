@@ -7,13 +7,14 @@ import { Logo } from "@/components/brand"
 import { IdentifyCard } from "@/components/identify-card"
 import { EcoTrackingCard, HistoryRow, LeaderboardPreviewCard } from "@/components/widgets"
 import { uuid } from "@/lib/utils"
+import { useMockRecentScans } from "@/lib/mockScansStore"
 import { useApp } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
 
 export function HomeScreen() {
   const { navigate, history, setChatOpen, toast } = useApp()
   const capture = useCapture()
-  const recent = history.slice(0, 3)
+  const recent = useMockRecentScans(history)
 
   const handleCameraScan = async () => {
     try {
@@ -87,24 +88,19 @@ export function HomeScreen() {
       <Card index={4} className="lg:col-span-7">
         <SectionTitle
           action={
-            history.length > 0 && (
-              <button onClick={() => navigate({ name: "history" })} className="ww-press pill-glass min-h-11 px-4 text-sm font-semibold">
-                See all
-              </button>
-            )
+            <button onClick={() => navigate({ name: "history" })} className="ww-press pill-glass min-h-11 px-4 text-sm font-semibold">
+              See all
+            </button>
           }
         >
           Recent scans
         </SectionTitle>
-        {recent.length === 0 ? (
-          <p className="tile px-4 py-6 text-center text-sm font-semibold">No scans yet — try your first one above 👆</p>
-        ) : (
-          <div className="space-y-2">
-            {recent.map((e) => (
-              <HistoryRow key={e.id} entry={e} onClick={() => navigate({ name: "historyDetail", id: e.id })} />
-            ))}
-          </div>
-        )}
+        <p className="-mt-1 mb-3 text-xs text-sub">Last 3 objects scanned with category tags and thumbnails</p>
+        <div className="space-y-2.5">
+          {recent.map((e) => (
+            <HistoryRow key={e.id} entry={e} onClick={() => navigate({ name: "historyDetail", id: e.id })} />
+          ))}
+        </div>
       </Card>
 
       {/* 6. Chat with Lulu */}

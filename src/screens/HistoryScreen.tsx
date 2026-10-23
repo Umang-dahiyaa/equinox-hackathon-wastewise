@@ -10,6 +10,7 @@ import { EvidenceBox, NotFoundCard, PrepSteps } from "@/components/scan-views"
 import { CategoryBadge, Thumb, confidenceLabel } from "@/components/brand"
 import { dayLabel } from "@/lib/dates"
 import { getCategory, guide } from "@/lib/guide"
+import { mockScanStore } from "@/lib/mockScansStore"
 import { useApp } from "@/state/AppContext"
 
 export function HistoryScreen() {
@@ -102,7 +103,7 @@ export function HistoryScreen() {
 /** A saved result, showing the rule exactly as it was shown at the time. */
 export function HistoryDetailScreen({ id }: { id: string }) {
   const { history, navigate } = useApp()
-  const entry = history.find((h) => h.id === id)
+  const entry = history.find((h) => h.id === id) || mockScanStore.getScanById(id)
   if (!entry) {
     return (
       <div className="px-4 pt-6 pb-32 text-center lg:pt-12">
