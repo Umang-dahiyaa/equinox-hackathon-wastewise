@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { History, House, MessageCircle, ScanLine, Trophy, UserRound } from "lucide-react"
+import { History, House, MapPinned, MessageCircle, ScanLine, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Mark } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -16,6 +16,7 @@ import { useApp, type Screen } from "@/state/AppContext"
 const NAV: { name: Screen["name"]; label: string; icon: typeof House }[] = [
   { name: "home", label: "Home", icon: House },
   { name: "scan", label: "Scan", icon: ScanLine },
+  { name: "dumps", label: "Dumps", icon: MapPinned },
   { name: "leaderboard", label: "Leaderboard", icon: Trophy },
   { name: "history", label: "History", icon: History },
   { name: "profile", label: "Profile", icon: UserRound },
@@ -67,7 +68,7 @@ export function BottomNav() {
   const current = screen.name === "historyDetail" ? "history" : screen.name
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[480px] md:max-w-[720px] lg:hidden border-t border-green/10 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Main">
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {NAV.map(({ name, label, icon: Icon }) => {
           const active = current === name
           return (
@@ -75,9 +76,9 @@ export function BottomNav() {
               <button
                 onClick={() => navigate({ name } as Screen)}
                 aria-current={active ? "page" : undefined}
-                className={cn("ww-press flex h-[68px] w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold", active ? "text-green" : "text-sub")}
+                className={cn("ww-press flex h-[68px] w-full flex-col items-center justify-center gap-1 text-[10.5px] font-semibold", active ? "text-green" : "text-sub")}
               >
-                <span className={cn("grid h-8 w-12 place-items-center rounded-full transition-colors", active && "bg-green text-white")}>
+                <span className={cn("grid h-8 w-11 place-items-center rounded-full transition-colors", active && "bg-green text-white")}>
                   <Icon size={21} strokeWidth={active ? 2.4 : 2} />
                 </span>
                 {label}

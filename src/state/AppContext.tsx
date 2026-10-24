@@ -23,6 +23,7 @@ export type Screen =
   | { name: "historyDetail"; id: string }
   | { name: "profile" }
   | { name: "guide" }
+  | { name: "dumps" }
 
 // Each screen has an address, so links like /app.html#leaderboard open it directly.
 // "#lulu" opens the chat on top of Home.
@@ -34,6 +35,7 @@ function screenFromHash(hash: string): { screen: Screen; chat: boolean } {
     case "history":
     case "profile":
     case "guide":
+    case "dumps":
       if (name === "history" && id) return { screen: { name: "historyDetail", id: decodeURIComponent(id) }, chat: false }
       return { screen: { name }, chat: false }
     case "lulu":

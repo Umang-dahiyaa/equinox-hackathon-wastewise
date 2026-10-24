@@ -3,6 +3,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { GoogleGenAI, Type, type Schema } from "@google/genai"
 import guide from "./src/data/wasteGuide.json" with { type: "json" }
+import { registerDumpRoutes } from "./server/dumps"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -10,7 +11,8 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const PORT = Number(process.env.PORT) || 3000
 
-app.use(express.json({ limit: "15mb" }))
+// dump reports carry full-size photos
+app.use(express.json({ limit: "30mb" }))
 
 // Setup Gemini SDK on server with telemetry header
 const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.VITE_GEMINI_API_KEY
@@ -299,6 +301,10 @@ app.post("/api/ask-lulu", async (req, res) => {
     res.status(500).json({ error: err?.message || "Lulu query failed" })
   }
 })
+
+// ---------- Illegal dump reporting ----------
+
+registerDumpRoutes(app, ai)
 
 // ---------- Vite / Static Middleware ----------
 

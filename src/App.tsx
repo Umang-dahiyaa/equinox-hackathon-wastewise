@@ -1,5 +1,6 @@
 import { LuluChat } from "@/chat/LuluChat"
 import { BottomNav, JoinSheet, LevelUpCard, LuluFab, Toasts, TopNav } from "@/components/app-chrome"
+import { DumpsScreen } from "@/screens/DumpsScreen"
 import { GuideScreen } from "@/screens/GuideScreen"
 import { HistoryDetailScreen, HistoryScreen } from "@/screens/HistoryScreen"
 import { HomeScreen } from "@/screens/HomeScreen"
@@ -26,6 +27,8 @@ function CurrentScreen() {
       return <ProfileScreen />
     case "guide":
       return <GuideScreen />
+    case "dumps":
+      return <DumpsScreen />
   }
 }
 
