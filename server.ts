@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 import { GoogleGenAI, Type, type Schema } from "@google/genai"
 import guide from "./src/data/wasteGuide.json" with { type: "json" }
 import { registerDumpRoutes } from "./server/dumps"
+import { registerScrapRoutes } from "./server/scrap"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -305,6 +306,10 @@ app.post("/api/ask-lulu", async (req, res) => {
 // ---------- Illegal dump reporting ----------
 
 registerDumpRoutes(app, ai)
+
+// ---------- Kabadiwala: scrap dealers nearby ----------
+
+registerScrapRoutes(app, ai)
 
 // ---------- Vite / Static Middleware ----------
 

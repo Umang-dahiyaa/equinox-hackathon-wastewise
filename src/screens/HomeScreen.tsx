@@ -1,4 +1,4 @@
-import { BrainCircuit, Camera, History, MapPinned, MessageCircle, Trophy, UserRound } from "lucide-react"
+import { BrainCircuit, Camera, History, MapPinned, MessageCircle, Recycle, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, Note, SectionTitle } from "@/components/ui/card"
 import { CampusGlobe } from "@/components/campus-globe"
@@ -81,9 +81,10 @@ export function HomeScreen() {
       />
 
       {/* 4. Quick links */}
-      <div className="ww-fade-up grid grid-cols-3 gap-3 lg:col-span-12 lg:gap-6" style={{ animationDelay: "120ms" }}>
+      <div className="ww-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4 lg:col-span-12 lg:gap-6" style={{ animationDelay: "120ms" }}>
         <QuickLink icon={<History size={20} />} label="History" onClick={() => navigate({ name: "history" })} />
         <QuickLink icon={<Trophy size={20} />} label="Leaderboard" onClick={() => navigate({ name: "leaderboard" })} />
+        <QuickLink icon={<Recycle size={20} />} label="Kabadiwala" note="Sell your scrap" onClick={() => navigate({ name: "kabadiwala" })} />
         <QuickLink icon={<BrainCircuit size={20} />} label="Eco Quiz" note="Coming soon" onClick={() => toast("The Eco Quiz is coming soon 🧠", "info")} />
       </div>
 

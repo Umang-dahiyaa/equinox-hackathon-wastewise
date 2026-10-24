@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeft, Camera, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { IdentifyCard } from "@/components/identify-card"
@@ -7,7 +7,9 @@ import { AIError } from "@/lib/gemini"
 import { runIdentification } from "@/lib/flow"
 import { playScanSuccessSound } from "@/lib/sound"
 import type { ImageInput, Outcome, ScanAI, ScanInput } from "@/lib/types"
+import { ScrapPopup } from "@/components/scrap-popup"
 import { MicButton, useVoiceInput } from "@/components/voice"
+import { scrapInOutcome } from "@/lib/scrap"
 import { consumeVoiceTurn, outcomeSpeech, speak, stopSpeaking } from "@/lib/voice"
 import { useApp, type ScanStart } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
@@ -34,6 +36,7 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
   const [correcting, setCorrecting] = useState(false)
   const [saving, setSaving] = useState(false)
   const runId = useRef(0)
+  const scrap = useMemo(() => scrapInOutcome(outcome), [outcome])
 
   const run = useCallback(async (next: ScanInput) => {
     const id = ++runId.current
@@ -213,6 +216,10 @@ export function ScanScreen({ start }: { start?: ScanStart }) {
             </div>
           }
         />
+      )}
+
+      {stage === "result" && outcome && scrap && (
+        <ScrapPopup key={runId.current} find={scrap} onFind={() => navigate({ name: "kabadiwala", kinds: scrap.kinds, from: scrap.items.join(", ") })} />
       )}
 
       {stage === "error" && <ErrorCard message={error ?? undefined} onRetry={() => run(input)} />}

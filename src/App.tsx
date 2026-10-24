@@ -2,6 +2,7 @@ import { LuluChat } from "@/chat/LuluChat"
 import { BottomNav, JoinSheet, LevelUpCard, LuluFab, Toasts, TopNav } from "@/components/app-chrome"
 import { DumpsScreen } from "@/screens/DumpsScreen"
 import { GuideScreen } from "@/screens/GuideScreen"
+import { KabadiwalaScreen } from "@/screens/KabadiwalaScreen"
 import { HistoryDetailScreen, HistoryScreen } from "@/screens/HistoryScreen"
 import { HomeScreen } from "@/screens/HomeScreen"
 import { LeaderboardScreen } from "@/screens/LeaderboardScreen"
@@ -29,6 +30,8 @@ function CurrentScreen() {
       return <GuideScreen />
     case "dumps":
       return <DumpsScreen key={screen.dumpId ?? "dumps"} dumpId={screen.dumpId} />
+    case "kabadiwala":
+      return <KabadiwalaScreen key={`${screen.from ?? ""}:${screen.kinds?.join() ?? ""}`} kinds={screen.kinds} from={screen.from} />
   }
 }
 

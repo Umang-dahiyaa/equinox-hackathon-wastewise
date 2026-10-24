@@ -18,6 +18,7 @@ import { levelFor } from "@/lib/levels"
 import type { ImageInput, LuluMood, Outcome, ScanAI, ScanInput } from "@/lib/types"
 import { cn, uuid } from "@/lib/utils"
 import { canSpeak, consumeVoiceTurn, outcomeSpeech, speak, stopSpeaking, useSpeakingKey } from "@/lib/voice"
+import { SCRAP_KINDS, scrapInOutcome } from "@/lib/scrap"
 import { errorMessage } from "@/screens/ScanScreen"
 import { useApp } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
@@ -456,7 +457,12 @@ function ChatCard({ card, messageId, onAnswer, onRetakePhoto, onGotIt, onCorrect
           image={card.input.image?.thumbnail ?? null}
           corrected={!!card.input.correctedItem}
           speakKey={messageId}
-          actions={<ResultActions compact saved={card.saved} onGotIt={onGotIt} onCorrect={onCorrect} />}
+          actions={
+            <>
+              <ResultActions compact saved={card.saved} onGotIt={onGotIt} onCorrect={onCorrect} />
+              <SellScrapButton outcome={card.outcome} onNavigate={onNavigate} />
+            </>
+          }
         />
       )
     case "clarify":
@@ -602,5 +608,25 @@ function CategoryChatCard({ categoryId }: { categoryId: string }) {
       )}
       <p className="mt-2 text-[11px] text-sub">From the {guide.guide_name}</p>
     </MiniCard>
+  )
+}
+
+/** Under a chat result with sellable scrap: jump to the Kabadiwala section, filter preset. */
+function SellScrapButton({ outcome, onNavigate }: { outcome: Outcome; onNavigate: () => void }) {
+  const { navigate } = useApp()
+  const scrap = scrapInOutcome(outcome)
+  if (!scrap) return null
+  const first = SCRAP_KINDS.find((k) => k.id === scrap.kinds[0])!
+  return (
+    <button
+      onClick={() => {
+        onNavigate()
+        navigate({ name: "kabadiwala", kinds: scrap.kinds, from: scrap.items.join(", ") })
+      }}
+      className="ww-press mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-mint px-4 py-2.5 text-sm font-semibold text-green"
+    >
+      <span aria-hidden>{first.emoji}</span> Sell it to a kabadiwala
+      <ChevronRight size={16} />
+    </button>
   )
 }
