@@ -1,11 +1,12 @@
 // Kabadiwala finder: scrap dealers near a location.
-// 1. Google Maps grounding through Gemini (real places; needs a key with grounding quota)
-// 2. OpenStreetMap via the Overpass API (free; only what's mapped)
-// 3. Always: Google Maps search links for the area, so there's somewhere to go even when 1 and 2 find nothing.
+// 1. Google Places API (real listings with ratings and phone numbers; needs GOOGLE_PLACES_API_KEY)
+// 2. If Places has little: Google Maps grounding through Gemini, and OpenStreetMap via Overpass
+// 3. Always: Google Maps search links for the area, so there's somewhere to go even when nothing is found.
 // Nothing is made up: every dealer comes from one of those sources.
 
 import type { GoogleGenAI } from "@google/genai"
 import type { Express } from "express"
+import { placesAvailable, searchPlaces } from "./places"
 
 type Kind = "metal" | "paper" | "plastic" | "ewaste"
 const KINDS: Kind[] = ["metal", "paper", "plastic", "ewaste"]
@@ -13,7 +14,7 @@ const KINDS: Kind[] = ["metal", "paper", "plastic", "ewaste"]
 export interface ScrapDealer {
   id: string
   name: string
-  source: "google" | "osm"
+  source: "places" | "google" | "osm"
   /** what they buy; empty = general kabadiwala (buys most scrap) */
   buys: Kind[]
   lat?: number
@@ -22,6 +23,9 @@ export interface ScrapDealer {
   address?: string
   phone?: string
   hours?: string
+  rating?: number
+  reviews?: number
+  openNow?: boolean
   mapsUrl: string
 }
 
@@ -41,6 +45,34 @@ function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   const dLng = ((bLng - aLng) * Math.PI) / 180
   const h = Math.sin(dLat / 2) ** 2 + Math.cos((aLat * Math.PI) / 180) * Math.cos((bLat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
   return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+// ---------- Google Places ----------
+
+async function fromPlaces(lat: number, lng: number): Promise<{ dealers: ScrapDealer[]; status: string }> {
+  if (!placesAvailable()) return { dealers: [], status: "no_key" }
+  try {
+    const found = await searchPlaces("scrap-all", lat, lng)
+    const dealers: ScrapDealer[] = found.map((p) => ({
+      id: `places-${p.id}`,
+      name: p.name,
+      source: "places",
+      buys: [], // listings don't say what they buy; kabadiwalas usually take most scrap
+      lat: p.lat,
+      lng: p.lng,
+      distanceKm: p.distanceKm,
+      address: p.address,
+      phone: p.phone,
+      rating: p.rating,
+      reviews: p.reviews,
+      openNow: p.openNow,
+      mapsUrl: p.mapsUrl,
+    }))
+    return { dealers, status: dealers.length ? "ok" : "none" }
+  } catch (err) {
+    console.warn("[scrap] Places search failed:", (err as Error).message)
+    return { dealers: [], status: "error" }
+  }
 }
 
 // ---------- Google Maps grounding ----------
@@ -158,14 +190,19 @@ export function registerScrapRoutes(app: Express, ai: GoogleGenAI | null) {
     const hit = cache.get(key)
     if (hit && Date.now() - hit.at < CACHE_MS) return res.json(hit.body)
 
-    const [google, osm] = await Promise.all([
-      ai ? fromGoogle(ai, lat, lng) : Promise.resolve({ dealers: [], status: "no_key" }),
-      fromOsm(lat, lng, 10000),
-    ])
+    const places = await fromPlaces(lat, lng)
+    // Places is fast and thorough; only fall back to the slower sources when it has little
+    const enough = places.dealers.length >= 3
+    const [google, osm] = enough
+      ? [{ dealers: [], status: "skipped" }, { dealers: [], status: "skipped" }]
+      : await Promise.all([
+          ai ? fromGoogle(ai, lat, lng) : Promise.resolve({ dealers: [], status: "no_key" }),
+          fromOsm(lat, lng, 10000),
+        ])
 
     const body = {
-      dealers: [...google.dealers, ...osm.dealers],
-      sources: { google: google.status, osm: osm.status },
+      dealers: [...places.dealers, ...google.dealers, ...osm.dealers],
+      sources: { places: places.status, google: google.status, osm: osm.status },
       searchLinks: (["all", ...KINDS] as const).map((k) => ({ kind: k, label: SEARCH_TERMS[k], url: searchUrl(SEARCH_TERMS[k], lat, lng) })),
     }
     // only cache answers that came back cleanly

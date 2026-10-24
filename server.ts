@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 import { GoogleGenAI, Type, type Schema } from "@google/genai"
 import guide from "./src/data/wasteGuide.json" with { type: "json" }
 import { registerDumpRoutes } from "./server/dumps"
+import { registerPlacesRoutes } from "./server/places"
 import { registerScrapRoutes } from "./server/scrap"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -309,6 +310,10 @@ registerDumpRoutes(app, ai)
 // ---------- Kabadiwala: scrap dealers nearby ----------
 
 registerScrapRoutes(app, ai)
+
+// ---------- Google Places: cleaning services nearby ----------
+
+registerPlacesRoutes(app)
 
 // ---------- Vite / Static Middleware ----------
 

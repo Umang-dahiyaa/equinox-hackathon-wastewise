@@ -37,9 +37,10 @@ export const SnapReportModal: React.FC<SnapReportModalProps> = ({
   const [analysisResult, setAnalysisResult] = useState<AIDumpAnalysisResult | null>(null);
 
   // Geo-location state
-  const [lat, setLat] = useState<number>(37.7749);
-  const [lng, setLng] = useState<number>(-122.4194);
-  const [address, setAddress] = useState<string>('742 Folsom St, Near 4th Street');
+  // default to the Sohna campus area until GPS gives the real spot
+  const [lat, setLat] = useState<number>(28.25);
+  const [lng, setLng] = useState<number>(77.07);
+  const [address, setAddress] = useState<string>('Near Sohna campus, Sector 4, Sohna');
   const [accuracyMeters, setAccuracyMeters] = useState<number>(5);
   const [fetchingGps, setFetchingGps] = useState(false);
 

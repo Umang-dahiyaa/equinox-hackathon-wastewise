@@ -28,6 +28,13 @@ npm run dev
 
 - `VITE_GEMINI_API_KEY`: from Google AI Studio. `VITE_GEMINI_MODEL` defaults to `gemini-2.5-flash`.
 - `VITE_FIREBASE_*`: from Firebase Console → Project settings → Web app.
+- `VITE_GOOGLE_MAPS_API_KEY`: Google Cloud key with the **Maps JavaScript API** enabled, for the dumps
+  heatmap and the kabadiwala map. It ships to the browser, so restrict it to your site's URLs.
+  `VITE_GOOGLE_MAPS_MAP_ID` is optional (pins use `DEMO_MAP_ID` without it).
+- `GOOGLE_PLACES_API_KEY`: key with **Places API (New)** enabled. Only the server uses it (no `VITE_`
+  prefix), for real kabadiwala and cleaning-service listings with ratings; the server only runs a fixed
+  set of searches and caches them for 30 minutes. Without it, those screens fall back to
+  OpenStreetMap and Google Maps search links.
 
 Keys live only in `.env.local`, which is git-ignored. Vite still bundles `VITE_*` values into the
 client JavaScript, so anyone using the app can see them. Restrict the Gemini key (HTTP referrers +

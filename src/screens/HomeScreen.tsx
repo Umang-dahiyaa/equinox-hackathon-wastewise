@@ -1,7 +1,7 @@
 import { Camera, History, MapPinned, MessageCircle, Recycle, Sparkles, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, Note, SectionTitle } from "@/components/ui/card"
-import { CampusGlobe } from "@/components/campus-globe"
+import { CAMPUS, CampusGlobe } from "@/components/campus-globe"
 import { LuluMascot } from "@/components/ui/LuluMascot"
 import { Logo } from "@/components/brand"
 import { IdentifyCard } from "@/components/identify-card"
@@ -12,7 +12,7 @@ import { useMemo, useState } from "react"
 import { uuid } from "@/lib/utils"
 import { useMockRecentScans } from "@/lib/mockScansStore"
 import { SEVERITY_COLOR, SEVERITY_ORDER, useActiveDumps } from "@/dumps/severity"
-import type { GlobeMarker } from "@/components/ui/3d-globe"
+import type { GlobeFocus, GlobeMarker } from "@/components/ui/3d-globe"
 import { useApp } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
 
@@ -167,6 +167,8 @@ function DumpGlobe() {
   const { navigate } = useApp()
   const { dumps, loaded } = useActiveDumps()
   const [hovered, setHovered] = useState<string | null>(null)
+  // open facing the campus (where the reports are), then let it spin
+  const [focus, setFocus] = useState<GlobeFocus | null>({ ...CAMPUS, distance: 3.5 })
   const markers = useMemo<GlobeMarker[]>(
     () => dumps.map((d) => ({ lat: d.location.lat, lng: d.location.lng, color: SEVERITY_COLOR[d.severity], size: 9, label: d.title, id: d.id })),
     [dumps]
@@ -182,6 +184,8 @@ function DumpGlobe() {
           label={`Rotating globe with the campus and ${dumps.length} reported dumps`}
           onMarkerHover={(m) => setHovered(m?.label ?? null)}
           onMarkerClick={(m) => (m.id && m.id !== "campus" ? navigate({ name: "dumps", dumpId: m.id }) : navigate({ name: "dumps" }))}
+          focus={focus}
+          onFocusArrive={() => setFocus(null)}
         />
       </div>
       {loaded && dumps.length > 0 ? (

@@ -14,7 +14,7 @@ import { useApp } from "@/state/AppContext"
 interface Dealer {
   id: string
   name: string
-  source: "google" | "osm"
+  source: "places" | "google" | "osm"
   buys: ScrapKind[]
   lat?: number
   lng?: number
@@ -22,12 +22,15 @@ interface Dealer {
   address?: string
   phone?: string
   hours?: string
+  rating?: number
+  reviews?: number
+  openNow?: boolean
   mapsUrl: string
 }
 
 interface DealerResponse {
   dealers: Dealer[]
-  sources: { google: string; osm: string }
+  sources: { places?: string; google: string; osm: string }
   searchLinks: { kind: ScrapKind | "all"; label: string; url: string }[]
 }
 
@@ -218,12 +221,12 @@ export function KabadiwalaScreen({ kinds: initialKinds = [], from }: { kinds?: S
               <div className="tile space-y-1 px-4 py-3 text-sm text-ink">
                 <p className="font-semibold">No {kinds.length ? kinds.map(scrapLabel).join(" / ").toLowerCase() + " " : ""}dealers are mapped near here yet.</p>
                 <p className="text-sub">
-                  {data.sources.osm === "error" ? "OpenStreetMap didn't respond. " : "OpenStreetMap has none tagged within 10 km. "}
-                  {data.sources.google === "no_quota"
-                    ? "Google Maps listings need a Gemini key with grounding enabled. "
-                    : data.sources.google === "no_key"
-                      ? "Google Maps listings need a Gemini key on the server. "
+                  {data.sources.places === "no_key"
+                    ? "Google listings need GOOGLE_PLACES_API_KEY on the server. "
+                    : data.sources.places === "error"
+                      ? "Google listings didn't load (check the Places API is enabled for the key). "
                       : ""}
+                  {data.sources.osm === "error" ? "OpenStreetMap didn't respond. " : data.sources.osm === "none" ? "OpenStreetMap has none tagged within 10 km. " : ""}
                   Use the Google Maps buttons above to find kabadiwalas.
                 </p>
               </div>
@@ -257,8 +260,18 @@ function DealerCard({ d, picked }: { d: Dealer; picked: boolean }) {
           <p className="font-semibold text-ink">{d.name}</p>
           <p className="text-xs text-sub">
             {d.distanceKm !== undefined && <>{d.distanceKm} km away · </>}
-            {d.source === "google" ? "Google Maps" : "OpenStreetMap"}
+            {d.source === "osm" ? "OpenStreetMap" : "Google Maps"}
           </p>
+          {(d.rating !== undefined || d.openNow !== undefined) && (
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
+              {d.rating !== undefined && (
+                <span className="font-semibold text-ink">
+                  ★ {d.rating.toFixed(1)} <span className="font-normal text-sub">({d.reviews ?? 0})</span>
+                </span>
+              )}
+              {d.openNow !== undefined && <span className={d.openNow ? "font-semibold text-green" : "text-sub"}>{d.openNow ? "Open now" : "Closed now"}</span>}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
           {d.buys.length ? (
@@ -288,7 +301,7 @@ function DealerCard({ d, picked }: { d: Dealer; picked: boolean }) {
       )}
       <div className="flex gap-2">
         <a href={d.mapsUrl} target="_blank" rel="noreferrer" className="ww-press inline-flex min-h-9 items-center gap-1.5 rounded-full bg-green px-3 text-xs font-semibold text-white">
-          <Navigation size={13} /> {d.source === "google" ? "Open in Maps" : "Directions"}
+          <Navigation size={13} /> {d.source === "osm" ? "Directions" : "Open in Maps"}
         </a>
         {d.phone && (
           <a href={`tel:${d.phone.replace(/[^\d+]/g, "")}`} className="ww-press pill-glass inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-semibold text-green">

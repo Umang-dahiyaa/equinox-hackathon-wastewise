@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -258,20 +257,7 @@ p {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-/* ---------- Dumps section (Leaflet map + density heatmap, by Kunwar) ---------- */
-
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  font-family: inherit;
-}
-
-.custom-pin-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* ---------- Dumps section (density heatmap drawn over the Google map, by Kunwar) ---------- */
 
 .density-canvas-layer {
   pointer-events: none;
@@ -330,11 +316,8 @@ p {
 :root[data-theme="dark"] :focus-visible { outline-color: var(--ww-green-text); }
 :root[data-theme="dark"] .chip-ai { background: rgba(255, 173, 31, 0.16); color: #FFC966; }
 :root[data-theme="dark"] .chip-alert { background: rgba(255, 65, 54, 0.16); color: #FF9A92; }
-/* street maps go dark too (tiles only; pins keep their colours) */
-:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88); }
-:root[data-theme="dark"] .leaflet-container { background: #1a211d; }
-:root[data-theme="dark"] .leaflet-bar a { background: var(--color-card); color: var(--color-ink); border-color: var(--ww-line-strong); }
-:root[data-theme="dark"] .leaflet-control-attribution { background: rgba(20, 29, 24, 0.85); color: var(--color-sub); }
+/* Google maps use their own dark colour scheme (set in code); the heat layer glows instead of darkening */
+:root[data-theme="dark"] .density-canvas-layer { mix-blend-mode: screen; }
 
 /* Kunwar's Dumps components use fixed slate/tint classes; map the ones he uses for dark */
 :root[data-theme="dark"] .dumps-scope :is(.bg-white, .bg-white\/95, .bg-white\/70) { background-color: var(--color-card); }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
+import { MAP_ID, pinElement, useGoogleMaps } from '@/lib/googleMaps';
+import { useTheme } from '@/lib/theme';
 import {
   Layers,
   MapPin,
@@ -39,9 +40,15 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersLayerRef = useRef<L.LayerGroup | null>(null);
-  const routeLayerRef = useRef<L.Polyline | null>(null);
+  // Google Maps (was Leaflet): the map, its pins, the sweeper route, and an overlay whose
+  // projection turns lat/lng into canvas pixels for the density heatmap
+  const mapsStatus = useGoogleMaps();
+  const [theme] = useTheme();
+  const [mapVersion, setMapVersion] = useState(0);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const routeLayerRef = useRef<google.maps.Polyline | null>(null);
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
 
   // Heatmap customization
   const [showHeatmap, setShowHeatmap] = useState(true);
@@ -66,49 +73,55 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
   });
 
   // Initialize Map
+  // (the colour scheme is fixed when a Google map is created, so a theme change makes a new map)
   useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return;
+    if (mapsStatus !== 'ready' || !mapContainerRef.current) return;
 
-    // Default center on SF / initial coordinates
-    const defaultLat = dumps.length > 0 ? dumps[0].location.lat : 37.7749;
-    const defaultLng = dumps.length > 0 ? dumps[0].location.lng : -122.4194;
+    // Default center: the first report, else Sohna
+    const defaultLat = dumps.length > 0 ? dumps[0].location.lat : 28.247;
+    const defaultLng = dumps.length > 0 ? dumps[0].location.lng : 77.0661;
 
-    const map = L.map(mapContainerRef.current, {
-      center: [defaultLat, defaultLng],
+    const map = new google.maps.Map(mapContainerRef.current, {
+      center: { lat: defaultLat, lng: defaultLng },
       zoom: 14,
-      zoomControl: false,
+      mapId: MAP_ID,
+      colorScheme: theme === 'dark' ? google.maps.ColorScheme.DARK : google.maps.ColorScheme.LIGHT,
+      disableDefaultUI: true,
+      zoomControl: true,
+      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+      clickableIcons: false,
+      gestureHandling: 'greedy',
     });
 
-    // OpenStreetMap's own tiles (CARTO's now need an API key)
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
+    const overlay = new google.maps.OverlayView();
+    overlay.onAdd = () => {};
+    overlay.draw = () => {};
+    overlay.onRemove = () => {};
+    overlay.setMap(map);
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const markersGroup = L.layerGroup().addTo(map);
-    markersLayerRef.current = markersGroup;
     mapInstanceRef.current = map;
-
-    // Map resize trigger
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 250);
+    overlayRef.current = overlay;
+    setMapVersion((v) => v + 1);
 
     return () => {
-      map.remove();
+      markersRef.current.forEach((m) => (m.map = null));
+      markersRef.current = [];
+      routeLayerRef.current?.setMap(null);
+      routeLayerRef.current = null;
+      overlay.setMap(null);
+      overlayRef.current = null;
       mapInstanceRef.current = null;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapsStatus, theme]);
 
   // Update Markers & Popups
   useEffect(() => {
     const map = mapInstanceRef.current;
-    const group = markersLayerRef.current;
-    if (!map || !group) return;
+    if (!map) return;
 
-    group.clearLayers();
+    markersRef.current.forEach((m) => (m.map = null));
+    markersRef.current = [];
 
     if (!showMarkers) return;
 
@@ -142,23 +155,26 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
         </div>
       `;
 
-      const customIcon = L.divIcon({
-        className: 'custom-pin-container',
-        html: iconHtml,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+      const content = pinElement(iconHtml, dump.title);
+      // centre the round pin on the spot, as the Leaflet icon anchor did
+      content.style.transform = 'translateY(50%)';
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: { lat: dump.location.lat, lng: dump.location.lng },
+        content,
+        title: dump.title,
+        gmpClickable: true,
       });
 
-      const marker = L.marker([dump.location.lat, dump.location.lng], { icon: customIcon });
-
-      marker.on('click', () => {
+      marker.addListener('gmp-click', () => {
         setSelectedDump(dump);
         setNearbyFacilities([]);
       });
 
-      group.addLayer(marker);
+      markersRef.current.push(marker);
     });
-  }, [filteredDumps, showMarkers]);
+  }, [filteredDumps, showMarkers, mapVersion]);
 
   // Open a dump picked elsewhere (e.g. a pin on the Home globe)
   useEffect(() => {
@@ -166,8 +182,10 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
     const dump = dumps.find((d) => d.id === focusDumpId);
     if (!dump) return;
     setSelectedDump(dump);
-    mapInstanceRef.current?.flyTo([dump.location.lat, dump.location.lng], 16);
-  }, [focusDumpId, dumps]);
+    mapInstanceRef.current?.panTo({ lat: dump.location.lat, lng: dump.location.lng });
+    // neighbourhood level: the chosen dump in front, the nearby reports still in view
+    mapInstanceRef.current?.setZoom(14);
+  }, [focusDumpId, dumps, mapVersion]);
 
   // Sweeper Route Calculation
   useEffect(() => {
@@ -175,7 +193,7 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
     if (!map) return;
 
     if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
+      routeLayerRef.current.setMap(null);
       routeLayerRef.current = null;
     }
 
@@ -190,19 +208,26 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
         });
 
       if (activeUncleaned.length > 1) {
-        const latLngs: L.LatLngExpression[] = activeUncleaned.map((d) => [d.location.lat, d.location.lng]);
+        const path = activeUncleaned.map((d) => ({ lat: d.location.lat, lng: d.location.lng }));
 
-        const polyline = L.polyline(latLngs, {
-          color: '#2563EB',
-          weight: 4,
-          opacity: 0.85,
-          dashArray: '8, 8',
-        }).addTo(map);
+        // dashed blue line (Google draws dashes as a repeating icon on an invisible stroke)
+        const polyline = new google.maps.Polyline({
+          map,
+          path,
+          strokeOpacity: 0,
+          icons: [
+            {
+              icon: { path: 'M 0,-1 0,1', strokeColor: '#2563EB', strokeOpacity: 0.85, strokeWeight: 4, scale: 2 },
+              offset: '0',
+              repeat: '16px',
+            },
+          ],
+        });
 
         routeLayerRef.current = polyline;
       }
     }
-  }, [showSweeperRoute, filteredDumps]);
+  }, [showSweeperRoute, filteredDumps, mapVersion]);
 
   // Draw Smooth Density Heatmap onto Canvas
   const drawHeatmap = () => {
@@ -216,9 +241,11 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
       return;
     }
 
-    const size = map.getSize();
-    canvas.width = size.x;
-    canvas.height = size.y;
+    const projection = overlayRef.current?.getProjection();
+    const box = mapContainerRef.current;
+    if (!projection || !box) return;
+    canvas.width = box.clientWidth;
+    canvas.height = box.clientHeight;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -240,7 +267,8 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
 
     // 1. Draw radial gradient intensity spots
     points.forEach((dump) => {
-      const containerPoint = map.latLngToContainerPoint([dump.location.lat, dump.location.lng]);
+      const containerPoint = projection.fromLatLngToContainerPixel(new google.maps.LatLng(dump.location.lat, dump.location.lng));
+      if (!containerPoint) return;
 
       // Weight factor
       let weight = 0.4;
@@ -316,18 +344,17 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
       drawHeatmap();
     };
 
-    map.on('move', onMapChange);
-    map.on('zoom', onMapChange);
-    map.on('resize', onMapChange);
+    const listeners = ['bounds_changed', 'zoom_changed', 'idle'].map((e) => map.addListener(e, onMapChange));
+    const resize = new ResizeObserver(onMapChange);
+    if (mapContainerRef.current) resize.observe(mapContainerRef.current);
 
     drawHeatmap();
 
     return () => {
-      map.off('move', onMapChange);
-      map.off('zoom', onMapChange);
-      map.off('resize', onMapChange);
+      listeners.forEach((l) => l.remove());
+      resize.disconnect();
     };
-  }, [filteredDumps, showHeatmap, heatRadius, heatIntensity]);
+  }, [filteredDumps, showHeatmap, heatRadius, heatIntensity, mapVersion]);
 
   // Center on current GPS
   const handleUseCurrentLocation = () => {
@@ -342,7 +369,8 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([lat, lng], 15);
+          mapInstanceRef.current.panTo({ lat, lng });
+          mapInstanceRef.current.setZoom(15);
         }
 
         // Prompt to seed demo dump cluster around user's location if none exist
@@ -368,7 +396,8 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
   // Preset location jumper
   const handleJumpToPreset = (lat: number, lng: number) => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([lat, lng], 14);
+      mapInstanceRef.current.panTo({ lat, lng });
+      mapInstanceRef.current.setZoom(14);
     }
   };
 
@@ -383,8 +412,15 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
     <div className="relative isolate w-full h-full flex flex-col lg:flex-row overflow-hidden bg-slate-100">
       {/* Map Area */}
       <div className="relative flex-1 h-full">
-        {/* Leaflet container */}
+        {/* Google map */}
         <div ref={mapContainerRef} className="w-full h-full" />
+        {mapsStatus !== 'ready' && (
+          <div className="absolute inset-0 z-10 grid place-items-center bg-slate-100 p-6 text-center text-sm text-slate-500">
+            {mapsStatus === 'loading'
+              ? 'Loading map…'
+              : 'The map needs a Google Maps key (VITE_GOOGLE_MAPS_API_KEY) that allows this site. The sweeper queue still works.'}
+          </div>
+        )}
 
         {/* Canvas density overlay */}
         <canvas
@@ -430,16 +466,16 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
             </button>
 
             <button
-              onClick={() => handleJumpToPreset(37.7749, -122.4194)}
+              onClick={() => handleJumpToPreset(28.247, 77.0661)}
               className="hidden sm:inline-flex px-2.5 py-2 text-xs font-medium text-slate-700 bg-white/95 hover:bg-slate-50 backdrop-blur-md rounded-lg shadow-sm border border-slate-200"
             >
-              San Francisco
+              Sohna
             </button>
             <button
-              onClick={() => handleJumpToPreset(40.7128, -74.006)}
+              onClick={() => handleJumpToPreset(28.4595, 77.0266)}
               className="hidden sm:inline-flex px-2.5 py-2 text-xs font-medium text-slate-700 bg-white/95 hover:bg-slate-50 backdrop-blur-md rounded-lg shadow-sm border border-slate-200"
             >
-              New York
+              Gurugram
             </button>
           </div>
         </div>
