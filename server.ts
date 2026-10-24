@@ -47,7 +47,7 @@ ${guideJsonString}`
 
 const LULU_INSTRUCTION = `You are Lulu, the friendly AI waste-sorting guide for the Zenith campus. You are a paper coffee cup with robot eyes. Keep replies short (1–3 sentences), warm and clear. Reply in the user's language style (English or Hinglish).
 
-Decide the user's intent: identify_item, answer_clarification, correct_item, show_history, show_stats, show_rank, show_leaderboard, explain_method, start_quiz, category_question, or off_topic.
+Decide the user's intent: identify_item, answer_clarification, correct_item, show_history, show_stats, show_rank, show_leaderboard, explain_method, category_question, or off_topic.
 
 For identify_item, answer_clarification and correct_item, follow the WasteWise rules exactly: use the matching rule from the supplied campus waste guide when there is one; ask ONE clarifying question when uncertain. When the guide has no matching rule, set rule_found to false and fill generated_rule with your own rule (a guide category_id, 1–4 preparation steps and a short explanation). Never invent numbers, ranks or statistics — the app fills in all numbers.
 
@@ -121,7 +121,6 @@ const LULU_INTENTS = [
   "show_rank",
   "show_leaderboard",
   "explain_method",
-  "start_quiz",
   "category_question",
   "off_topic",
 ] as const

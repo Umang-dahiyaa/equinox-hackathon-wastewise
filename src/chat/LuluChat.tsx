@@ -37,7 +37,6 @@ function speechFor(text: string, card?: Card) {
 }
 
 const OFF_TOPIC = "I'm best at waste sorting! Want to scan something?"
-const QUIZ = "The Eco Quiz is coming soon 🧠 For now, show me something to sort!"
 
 type Card =
   | { type: "outcome"; outcome: Exclude<Outcome, { kind: "clarify" }>; input: ScanInput; originalAi: ScanAI | null; saved: boolean }
@@ -190,8 +189,6 @@ export function LuluChat() {
           return say(ai.lulu_message, settle, { type: "leaderboard" })
         case "explain_method":
           return say(EXPLAIN, "idle")
-        case "start_quiz":
-          return say(QUIZ, "idle")
         case "category_question": {
           const c = getCategory(ai.category_id)
           return c ? say(ai.lulu_message, "happy", { type: "category", categoryId: c.id }) : say(ai.lulu_message, settle)
