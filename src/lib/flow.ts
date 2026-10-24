@@ -83,8 +83,9 @@ export function buildHistoryEntry(opts: {
   outcome: SingleOutcome
   originalAi: ScanAI | null
   points: number
+  location?: { lat: number; lng: number } | null
 }): HistoryEntry {
-  const { input, outcome, originalAi, points } = opts
+  const { input, outcome, originalAi, points, location = null } = opts
   const ai = outcome.ai
   const rule = outcome.kind === "result" ? outcome.rule : null
   const category = outcome.kind === "result" ? outcome.category : null
@@ -113,6 +114,7 @@ export function buildHistoryEntry(opts: {
           }
         : null,
     points_awarded: points,
+    location,
   }
 }
 

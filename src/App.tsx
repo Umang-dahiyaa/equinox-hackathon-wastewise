@@ -28,7 +28,7 @@ function CurrentScreen() {
     case "guide":
       return <GuideScreen />
     case "dumps":
-      return <DumpsScreen />
+      return <DumpsScreen key={screen.dumpId ?? "dumps"} dumpId={screen.dumpId} />
   }
 }
 

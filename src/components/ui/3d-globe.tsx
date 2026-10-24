@@ -12,9 +12,21 @@ import { cn } from "@/lib/utils";
 export interface GlobeMarker {
   lat: number;
   lng: number;
-  src: string;
+  /** image shown in the pin head; without it the head is a dot in `color` */
+  src?: string;
   label?: string;
   size?: number;
+  /** pin colour (dot and stalk tip) */
+  color?: string;
+  /** caller's id, handed back on click/hover */
+  id?: string;
+}
+
+/** Where the camera should turn and zoom to; `distance` is in globe radii from the centre. */
+export interface GlobeFocus {
+  lat: number;
+  lng: number;
+  distance?: number;
 }
 
 export interface Globe3DConfig {
@@ -73,6 +85,10 @@ interface Globe3DProps {
   onMarkerClick?: (marker: GlobeMarker) => void;
   /** Callback when a marker is hovered */
   onMarkerHover?: (marker: GlobeMarker | null) => void;
+  /** Turn and zoom the camera to this place (auto-rotate pauses while set) */
+  focus?: GlobeFocus | null;
+  /** Called once each time the camera reaches `focus` */
+  onFocusArrive?: () => void;
 }
 
 // ============================================================================
@@ -127,6 +143,14 @@ function Marker({
 }: MarkerProps) {
   const [hovered, setHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+
+  // drei's <Html> can drop its first render when its portal target settles just after
+  // mount; on a still globe nothing re-renders the pin, so it stays empty. Re-render once.
+  const [, settle] = useState(0);
+  React.useEffect(() => {
+    const id = requestAnimationFrame(() => settle(1));
+    return () => cancelAnimationFrame(id);
+  }, []);
   const groupRef = useRef<THREE.Group>(null);
   const imageGroupRef = useRef<THREE.Group>(null);
   const { camera } = useThree();
@@ -205,7 +229,7 @@ function Marker({
       {/* Pin point at the surface */}
       <mesh position={surfacePosition} quaternion={lineQuaternion}>
         <coneGeometry args={[0.015, 0.04, 8]} />
-        <meshBasicMaterial color={hovered ? "#f97316" : "#ef4444"} />
+        <meshBasicMaterial color={hovered ? "#ffffff" : marker.color ?? "#ef4444"} />
       </mesh>
 
       {/* Circular image at the top */}
@@ -227,19 +251,23 @@ function Marker({
               hovered && "scale-125 shadow-xl ring-1 ring-white/50",
             )}
             style={{
-              width: "8px",
-              height: "8px",
+              width: `${marker.size ?? 8}px`,
+              height: `${marker.size ?? 8}px`,
+              ...(marker.src ? null : { background: marker.color ?? "#ef4444", boxShadow: "0 0 0 1px #fff" }),
             }}
+            title={marker.label}
             onMouseEnter={handlePointerEnter}
             onMouseLeave={handlePointerLeave}
             onClick={handleClick}
           >
-            <img
-              src={marker.src}
-              alt={marker.label || "Marker"}
-              className="h-full w-full object-cover"
-              draggable={false}
-            />
+            {marker.src && (
+              <img
+                src={marker.src}
+                alt={marker.label || "Marker"}
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+            )}
           </div>
         </Html>
       </group>
@@ -390,6 +418,41 @@ function Atmosphere({ radius, color, intensity, blur }: AtmosphereProps) {
 }
 
 // ============================================================================
+// Focus: turn and zoom the camera to a place
+// ============================================================================
+
+function FocusController({ focus, radius, onArrive }: { focus: GlobeFocus | null | undefined; radius: number; onArrive?: () => void }) {
+  const { camera, controls } = useThree() as unknown as { camera: THREE.Camera; controls: { update?: () => void } | null };
+  const arrived = useRef(false);
+  const key = focus ? `${focus.lat},${focus.lng},${focus.distance}` : "";
+  React.useEffect(() => {
+    arrived.current = false;
+  }, [key]);
+
+  useFrame((_, dt) => {
+    if (!focus) return;
+    const targetDir = latLngToVector3(focus.lat, focus.lng, 1).normalize();
+    const targetDist = radius * (focus.distance ?? 3.5);
+    const curDist = camera.position.length();
+    const curDir = camera.position.clone().normalize();
+    // ease towards the target: turn along the shortest arc, zoom at the same pace
+    const k = 1 - Math.pow(0.08, Math.min(dt, 0.05));
+    const turn = new THREE.Quaternion().setFromUnitVectors(curDir, targetDir);
+    const step = new THREE.Quaternion().slerp(turn, k);
+    const nextDir = curDir.applyQuaternion(step).normalize();
+    const nextDist = curDist + (targetDist - curDist) * k;
+    camera.position.copy(nextDir.multiplyScalar(nextDist));
+    camera.lookAt(0, 0, 0);
+    controls?.update?.();
+    if (!arrived.current && camera.position.clone().normalize().angleTo(targetDir) < 0.01 && Math.abs(nextDist - targetDist) < radius * 0.02) {
+      arrived.current = true;
+      onArrive?.();
+    }
+  });
+  return null;
+}
+
+// ============================================================================
 // Scene Component
 // ============================================================================
 
@@ -398,9 +461,11 @@ interface SceneProps {
   config: Required<Globe3DConfig>;
   onMarkerClick?: (marker: GlobeMarker) => void;
   onMarkerHover?: (marker: GlobeMarker | null) => void;
+  focus?: GlobeFocus | null;
+  onFocusArrive?: () => void;
 }
 
-function Scene({ markers, config, onMarkerClick, onMarkerHover }: SceneProps) {
+function Scene({ markers, config, onMarkerClick, onMarkerHover, focus, onFocusArrive }: SceneProps) {
   const { camera } = useThree();
 
   // Set initial camera position (pulled back to accommodate markers)
@@ -442,6 +507,8 @@ function Scene({ markers, config, onMarkerClick, onMarkerHover }: SceneProps) {
         />
       )}
 
+      <FocusController focus={focus} radius={config.radius} onArrive={onFocusArrive} />
+
       {/* Controls */}
       <OrbitControls
         makeDefault
@@ -450,7 +517,7 @@ function Scene({ markers, config, onMarkerClick, onMarkerHover }: SceneProps) {
         minDistance={config.minDistance}
         maxDistance={config.maxDistance}
         rotateSpeed={0.4}
-        autoRotate={config.autoRotateSpeed > 0}
+        autoRotate={config.autoRotateSpeed > 0 && !focus}
         autoRotateSpeed={config.autoRotateSpeed}
         enableDamping
         dampingFactor={0.1}
@@ -509,6 +576,8 @@ export function Globe3D({
   className,
   onMarkerClick,
   onMarkerHover,
+  focus,
+  onFocusArrive,
 }: Globe3DProps) {
   const mergedConfig = useMemo(
     () => ({ ...defaultConfig, ...config }),
@@ -540,6 +609,8 @@ export function Globe3D({
             config={mergedConfig}
             onMarkerClick={onMarkerClick}
             onMarkerHover={onMarkerHover}
+            focus={focus}
+            onFocusArrive={onFocusArrive}
           />
         </Suspense>
       </Canvas>

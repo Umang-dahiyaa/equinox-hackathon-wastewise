@@ -24,6 +24,8 @@ interface HeatmapViewProps {
   onOpenSnapModal: () => void;
   onUpdateStatus: (id: string, status: any) => void;
   onRefreshDumps: () => void;
+  /** Dump to select and fly to when the map opens (from a globe pin) */
+  focusDumpId?: string;
 }
 
 export const HeatmapView: React.FC<HeatmapViewProps> = ({
@@ -33,6 +35,7 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
   onOpenSnapModal,
   onUpdateStatus,
   onRefreshDumps,
+  focusDumpId,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -156,6 +159,15 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
       group.addLayer(marker);
     });
   }, [filteredDumps, showMarkers]);
+
+  // Open a dump picked elsewhere (e.g. a pin on the Home globe)
+  useEffect(() => {
+    if (!focusDumpId) return;
+    const dump = dumps.find((d) => d.id === focusDumpId);
+    if (!dump) return;
+    setSelectedDump(dump);
+    mapInstanceRef.current?.flyTo([dump.location.lat, dump.location.lng], 16);
+  }, [focusDumpId, dumps]);
 
   // Sweeper Route Calculation
   useEffect(() => {

@@ -129,6 +129,8 @@ export interface HistoryEntry {
   rule_found: boolean
   rule_snapshot: RuleSnapshot | null
   points_awarded: number
+  /** where it was scanned (rounded), only when the user turned scan locations on */
+  location?: { lat: number; lng: number } | null
 }
 
 export interface Profile {

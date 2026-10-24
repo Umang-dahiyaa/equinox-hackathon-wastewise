@@ -4,6 +4,7 @@ import { fetchMyRank } from "@/lib/leaderboard"
 import { loadHistory, saveHistory } from "@/lib/history"
 import { levelFor, type Level } from "@/lib/levels"
 import type { ScoredAction } from "@/lib/points"
+import { scanLocation, type LatLng } from "@/lib/location"
 import { cropThumbnail } from "@/lib/segment"
 import { profileStore, type AwardOutcome, type SettingsPatch, type StoredProfile } from "@/lib/store"
 import type { HistoryEntry, ImageInput, Outcome, ScanAI, ScanInput, SingleOutcome } from "@/lib/types"
@@ -23,7 +24,7 @@ export type Screen =
   | { name: "historyDetail"; id: string }
   | { name: "profile" }
   | { name: "guide" }
-  | { name: "dumps" }
+  | { name: "dumps"; dumpId?: string }
 
 // Each screen has an address, so links like /app.html#leaderboard open it directly.
 // "#lulu" opens the chat on top of Home.
@@ -243,8 +244,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const finishOne = useCallback(
-    async ({ input, outcome, originalAi }: { input: ScanInput; outcome: SingleOutcome; originalAi: ScanAI | null }) => {
-      const entry = buildHistoryEntry({ input, outcome, originalAi, points: 0 })
+    async ({ input, outcome, originalAi, location }: { input: ScanInput; outcome: SingleOutcome; originalAi: ScanAI | null; location: LatLng | null }) => {
+      const entry = buildHistoryEntry({ input, outcome, originalAi, points: 0, location })
       updateHistory((list) => [entry, ...list])
       const action: ScoredAction = {
         ruleFound: outcome.kind === "result",
@@ -270,7 +271,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const finishScan = useCallback(
     async ({ input, outcome, originalAi }: FinishArgs) => {
       if (outcome.kind === "clarify") return null
-      if (outcome.kind !== "multi") return finishOne({ input, outcome, originalAi })
+      const location = await scanLocation()
+      if (outcome.kind !== "multi") return finishOne({ input, outcome, originalAi, location })
       let last: AwardOutcome | null = null
       for (const part of outcome.parts) {
         let image = input.image
@@ -278,7 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const thumbnail = await cropThumbnail(image.dataUrl, part.box).catch(() => image!.thumbnail)
           image = { ...image, thumbnail }
         }
-        last = await finishOne({ input: { ...input, image }, outcome: part.outcome, originalAi: part.ai })
+        last = await finishOne({ input: { ...input, image }, outcome: part.outcome, originalAi: part.ai, location })
       }
       return last
     },

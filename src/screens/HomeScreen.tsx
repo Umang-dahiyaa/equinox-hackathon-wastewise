@@ -1,4 +1,4 @@
-import { BrainCircuit, Camera, History, MessageCircle, Trophy, UserRound } from "lucide-react"
+import { BrainCircuit, Camera, History, MapPinned, MessageCircle, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, Note, SectionTitle } from "@/components/ui/card"
 import { CampusGlobe } from "@/components/campus-globe"
@@ -6,8 +6,11 @@ import { LuluMascot } from "@/components/ui/LuluMascot"
 import { Logo } from "@/components/brand"
 import { IdentifyCard } from "@/components/identify-card"
 import { EcoTrackingCard, HistoryRow, LeaderboardPreviewCard } from "@/components/widgets"
+import { useMemo, useState } from "react"
 import { uuid } from "@/lib/utils"
 import { useMockRecentScans } from "@/lib/mockScansStore"
+import { SEVERITY_COLOR, SEVERITY_ORDER, useActiveDumps } from "@/dumps/severity"
+import type { GlobeMarker } from "@/components/ui/3d-globe"
 import { useApp } from "@/state/AppContext"
 import { useCapture } from "@/state/capture"
 
@@ -117,13 +120,8 @@ export function HomeScreen() {
         </div>
       </Card>
 
-      {/* 7. Globe */}
-      <section className="flex flex-col items-center pt-6 lg:col-span-4 lg:justify-center lg:pt-0">
-        <div className="mint-glow w-full max-w-[360px] rounded-full">
-          <CampusGlobe className="h-[300px] lg:h-[320px]" />
-        </div>
-        <p className="mt-3 text-sm text-sub">Sorting right, one item at a time 🌍</p>
-      </section>
+      {/* 7. Globe: the campus plus every reported illegal dump */}
+      <DumpGlobe />
 
       {/* 8. Eco Tracking */}
       <EcoTrackingCard index={7} className="lg:col-span-4" />
@@ -155,5 +153,55 @@ function QuickLink({ icon, label, note, onClick }: { icon: React.ReactNode; labe
       <span className="text-[13px] font-semibold lg:text-[15px]">{label}</span>
       {note && <span className="-mt-1 text-[11px] text-sub lg:mt-0 lg:ml-auto lg:text-xs">{note}</span>}
     </button>
+  )
+}
+
+/** Home globe: the campus pin plus active illegal dumps, coloured by severity; a pin opens that dump. */
+function DumpGlobe() {
+  const { navigate } = useApp()
+  const { dumps, loaded } = useActiveDumps()
+  const [hovered, setHovered] = useState<string | null>(null)
+  const markers = useMemo<GlobeMarker[]>(
+    () => dumps.map((d) => ({ lat: d.location.lat, lng: d.location.lng, color: SEVERITY_COLOR[d.severity], size: 9, label: d.title, id: d.id })),
+    [dumps]
+  )
+  const kg = dumps.reduce((n, d) => n + d.estimatedWeightKg, 0)
+  const present = SEVERITY_ORDER.filter((s) => dumps.some((d) => d.severity === s))
+  return (
+    <section className="flex flex-col items-center pt-6 lg:col-span-4 lg:justify-center lg:pt-0">
+      <div className="mint-glow w-full max-w-[360px] rounded-full">
+        <CampusGlobe
+          className="h-[300px] lg:h-[320px]"
+          markers={markers}
+          label={`Rotating globe with the campus and ${dumps.length} reported dumps`}
+          onMarkerHover={(m) => setHovered(m?.label ?? null)}
+          onMarkerClick={(m) => (m.id && m.id !== "campus" ? navigate({ name: "dumps", dumpId: m.id }) : navigate({ name: "dumps" }))}
+        />
+      </div>
+      {loaded && dumps.length > 0 ? (
+        <div className="mt-3 w-full max-w-[360px] text-center">
+          <p className="text-sm text-sub" aria-live="polite">
+            {hovered ?? (
+              <>
+                <span className="font-semibold text-ink">{dumps.length} illegal dumps</span> reported · {kg.toLocaleString()} kg · tap a pin
+              </>
+            )}
+          </p>
+          <ul className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-sub" aria-label="Pin colours">
+            {present.map((s) => (
+              <li key={s} className="inline-flex items-center gap-1.5 capitalize">
+                <span className="h-2.5 w-2.5 rounded-full ring-1 ring-white" style={{ backgroundColor: SEVERITY_COLOR[s] }} />
+                {s}
+              </li>
+            ))}
+          </ul>
+          <button onClick={() => navigate({ name: "dumps" })} className="ww-press pill-glass mt-3 inline-flex min-h-10 items-center gap-1.5 px-4 text-sm font-semibold text-green">
+            <MapPinned size={16} /> Open the dumps map
+          </button>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-sub">Sorting right, one item at a time 🌍</p>
+      )}
+    </section>
   )
 }

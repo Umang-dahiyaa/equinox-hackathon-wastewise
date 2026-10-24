@@ -2,16 +2,19 @@
 // government dispatch and the sweeper queue. Built by Kunwar Juneja as a separate
 // app on the main branch; this screen hosts it inside WasteWise.
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Camera, Map as MapIcon, ScanLine, Send, Truck } from "lucide-react"
+import { CampusGlobe } from "@/components/campus-globe"
+import type { GlobeMarker } from "@/components/ui/3d-globe"
 import { Button } from "@/components/ui/button"
 import { GovernmentRegistry } from "@/dumps/GovernmentRegistry"
 import { GovernmentReportModal } from "@/dumps/GovernmentReportModal"
 import { HeatmapView } from "@/dumps/HeatmapView"
 import { SnapReportModal } from "@/dumps/SnapReportModal"
 import { SweeperQueue } from "@/dumps/SweeperQueue"
+import { SEVERITY_COLOR } from "@/dumps/severity"
 import type { DumpReport, DumpStatus } from "@/dumps/types"
-import { cn } from "@/lib/utils"
+import { cn, prefersReducedMotion } from "@/lib/utils"
 import { useApp } from "@/state/AppContext"
 
 type Tab = "heatmap" | "government" | "sweeper"
@@ -22,7 +25,7 @@ const TABS: { id: Tab; label: string; icon: typeof MapIcon }[] = [
   { id: "sweeper", label: "Sweeper queue", icon: Truck },
 ]
 
-export function DumpsScreen() {
+export function DumpsScreen({ dumpId }: { dumpId?: string }) {
   const { toast, navigate } = useApp()
   const [tab, setTab] = useState<Tab>("heatmap")
   const [dumps, setDumps] = useState<DumpReport[]>([])
@@ -30,6 +33,7 @@ export function DumpsScreen() {
   const [snapOpen, setSnapOpen] = useState(false)
   const [govOpen, setGovOpen] = useState(false)
   const [govDump, setGovDump] = useState<DumpReport | null>(null)
+  const [intro, setIntro] = useState<"flying" | "leaving" | null>(() => (shouldFlyIn(dumpId) ? "flying" : null))
 
   const fetchDumps = useCallback(async () => {
     try {
@@ -84,6 +88,39 @@ export function DumpsScreen() {
 
   const active = dumps.filter((d) => d.status !== "cleaned").length
 
+  // fly-in: from space down to the dump picked on the globe, or the middle of the active ones
+  const target = useMemo(() => {
+    const pick = dumps.find((d) => d.id === dumpId)
+    const pool = pick ? [pick] : dumps.filter((d) => d.status !== "cleaned")
+    if (!pool.length) return null
+    const lat = pool.reduce((n, d) => n + d.location.lat, 0) / pool.length
+    const lng = pool.reduce((n, d) => n + d.location.lng, 0) / pool.length
+    return { lat, lng, distance: 1.45, place: pick?.location.address ?? `${pool.length} active dumps` }
+  }, [dumps, dumpId])
+  const introMarkers = useMemo<GlobeMarker[]>(
+    () => dumps.filter((d) => d.status !== "cleaned").map((d) => ({ lat: d.location.lat, lng: d.location.lng, // pin heads grow as the camera closes in, so start them tiny
+      color: SEVERITY_COLOR[d.severity], size: 1.2, id: d.id })),
+    [dumps]
+  )
+  const endIntro = useCallback(() => {
+    setIntro((s) => (s === "flying" ? "leaving" : s))
+    setTimeout(() => setIntro(null), 600)
+  }, [])
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FLEW_KEY, "1")
+    } catch {
+      /* storage blocked */
+    }
+  }, [])
+
+  // never keep the map hidden for long (slow globe textures, no dumps)
+  useEffect(() => {
+    if (!intro) return
+    const t = setTimeout(endIntro, loading ? 7000 : target ? 5000 : 800)
+    return () => clearTimeout(t)
+  }, [intro, loading, target, endIntro])
+
   return (
     <div className="space-y-4 px-4 pt-4 pb-32 lg:pt-8 lg:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -121,7 +158,31 @@ export function DumpsScreen() {
       ) : (
         <>
           {tab === "heatmap" && (
-            <div className="glass h-[780px] overflow-hidden p-0 lg:h-[calc(100dvh-16rem)] lg:min-h-[580px]">
+            <div className="glass relative h-[780px] overflow-hidden p-0 lg:h-[calc(100dvh-16rem)] lg:min-h-[580px]">
+              {intro && (
+                <div
+                  className={cn(
+                    "absolute inset-0 z-20 flex flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_45%,#123524_0%,#06140d_70%)] transition-opacity duration-500",
+                    intro === "leaving" ? "pointer-events-none opacity-0" : "opacity-100"
+                  )}
+                >
+                  <CampusGlobe
+                    className="absolute inset-0 h-full"
+                    closeUp
+                    still
+                    markers={introMarkers}
+                    label="Globe zooming in to the reported dumps"
+                    focus={target}
+                    onFocusArrive={endIntro}
+                  />
+                  <div className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-3 px-4 text-center">
+                    <p className="text-sm font-semibold text-white/90">{target ? `Flying to ${target.place}…` : "Finding reported dumps…"}</p>
+                    <button onClick={endIntro} className="ww-press rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white hover:bg-white/25">
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
               <HeatmapView
                 dumps={dumps}
                 onSelectDump={(d) => setGovDump(d)}
@@ -129,6 +190,7 @@ export function DumpsScreen() {
                 onOpenSnapModal={() => setSnapOpen(true)}
                 onUpdateStatus={updateStatus}
                 onRefreshDumps={fetchDumps}
+                focusDumpId={dumpId}
               />
             </div>
           )}
@@ -159,4 +221,17 @@ export function DumpsScreen() {
       />
     </div>
   )
+}
+
+const FLEW_KEY = "wastewise.dumpsFlyIn.v1"
+
+/** Fly in when opened from a globe pin, otherwise once per browser session; never with reduced motion. */
+function shouldFlyIn(dumpId?: string) {
+  if (prefersReducedMotion()) return false
+  if (dumpId) return true
+  try {
+    return !sessionStorage.getItem(FLEW_KEY)
+  } catch {
+    return true
+  }
 }

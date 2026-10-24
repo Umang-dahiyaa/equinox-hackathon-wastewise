@@ -1,11 +1,13 @@
-import { Globe3D, type Globe3DConfig, type GlobeMarker } from "@/components/ui/3d-globe"
+import { useMemo } from "react"
+import { Globe3D, type Globe3DConfig, type GlobeFocus, type GlobeMarker } from "@/components/ui/3d-globe"
 import { cn, prefersReducedMotion } from "@/lib/utils"
 
-// One marker only: the campus (Sohna, Haryana — approximate coordinates).
-const markers: GlobeMarker[] = [{ lat: 28.25, lng: 77.07, src: "/favicon.svg", label: "Our campus" }]
+/** The campus (Sohna, Haryana — approximate coordinates). */
+export const CAMPUS = { lat: 28.25, lng: 77.07 }
+const campusMarker: GlobeMarker = { ...CAMPUS, src: "/favicon.svg", label: "Our campus", id: "campus" }
 
 // Same look as the Aceternity 3d-globe demo; no auto-rotation with reduced motion.
-const config: Globe3DConfig = {
+const baseConfig: Globe3DConfig = {
   atmosphereColor: "#4da6ff",
   atmosphereIntensity: 20,
   bumpScale: 5,
@@ -16,10 +18,31 @@ const config: Globe3DConfig = {
   pointLightIntensity: 2.2,
 }
 
-export function CampusGlobe({ className }: { className?: string }) {
+interface Props {
+  className?: string
+  /** pins besides the campus (dumps, scans…) */
+  markers?: GlobeMarker[]
+  showCampus?: boolean
+  label?: string
+  onMarkerClick?: (marker: GlobeMarker) => void
+  onMarkerHover?: (marker: GlobeMarker | null) => void
+  focus?: GlobeFocus | null
+  onFocusArrive?: () => void
+  /** allow the camera close to the surface (for flying in) */
+  closeUp?: boolean
+  /** no auto-rotation */
+  still?: boolean
+}
+
+export function CampusGlobe({ className, markers = [], showCampus = true, label, onMarkerClick, onMarkerHover, focus, onFocusArrive, closeUp, still }: Props) {
+  const all = useMemo(() => (showCampus ? [campusMarker, ...markers] : markers), [showCampus, markers])
+  const config = useMemo<Globe3DConfig>(
+    () => ({ ...baseConfig, ...(closeUp ? { minDistance: 2.3 } : null), ...(still ? { autoRotateSpeed: 0 } : null) }),
+    [closeUp, still]
+  )
   return (
-    <div role="img" aria-label="Rotating 3D globe showing the campus" className={cn("w-full", className)}>
-      <Globe3D markers={markers} config={config} className="h-full" />
+    <div role="img" aria-label={label ?? "Rotating 3D globe showing the campus"} className={cn("w-full", className)}>
+      <Globe3D markers={all} config={config} className="h-full" onMarkerClick={onMarkerClick} onMarkerHover={onMarkerHover} focus={focus} onFocusArrive={onFocusArrive} />
     </div>
   )
 }

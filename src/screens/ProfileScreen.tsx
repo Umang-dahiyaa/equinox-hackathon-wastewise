@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { LuluMascot } from "@/components/ui/LuluMascot"
 import { LevelBadge } from "@/components/brand"
+import { ScanFootprint } from "@/components/scan-footprint"
 import { Avatar, StatTile } from "@/components/widgets"
 import { useMyRank } from "@/hooks/useLeaderboard"
 import { useStats } from "@/hooks/useStats"
@@ -211,6 +212,11 @@ export function ProfileScreen() {
             })}
           </div>
         )}
+      </Card>
+
+      {/* 5b. Where you've sorted */}
+      <Card index={4}>
+        <ScanFootprint />
       </Card>
 
       {/* 6. Badges */}
