@@ -27,6 +27,7 @@ export type Screen =
   | { name: "guide" }
   | { name: "dumps"; dumpId?: string }
   | { name: "kabadiwala"; kinds?: ScrapKind[]; from?: string }
+  | { name: "cleaning" }
 
 // Each screen has an address, so links like /app.html#leaderboard open it directly.
 // "#lulu" opens the chat on top of Home.
@@ -40,6 +41,7 @@ function screenFromHash(hash: string): { screen: Screen; chat: boolean } {
     case "guide":
     case "dumps":
     case "kabadiwala":
+    case "cleaning":
       if (name === "history" && id) return { screen: { name: "historyDetail", id: decodeURIComponent(id) }, chat: false }
       return { screen: { name }, chat: false }
     case "lulu":
