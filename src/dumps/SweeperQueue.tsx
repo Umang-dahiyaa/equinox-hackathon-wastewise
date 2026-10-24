@@ -13,6 +13,7 @@ import {
   Send,
 } from 'lucide-react';
 import type { DumpReport } from './types';
+import { DumpPhoto } from './DumpPhoto';
 
 interface SweeperQueueProps {
   dumps: DumpReport[];
@@ -58,9 +59,8 @@ export const SweeperQueue: React.FC<SweeperQueueProps> = ({
   };
 
   const handleCompleteSweep = (dump: DumpReport) => {
-    const afterProof =
-      afterImage ||
-      'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=800&q=80'; // clean street photo
+    // only the sweeper's own photo counts as after-cleanup proof
+    const afterProof = afterImage || undefined;
 
     onUpdateStatus(
       dump.id,
@@ -155,10 +155,9 @@ export const SweeperQueue: React.FC<SweeperQueueProps> = ({
           >
             {/* Image & Status Pill */}
             <div className="relative h-44 bg-slate-100">
-              <img
+              <DumpPhoto
                 src={dump.imageUrl}
                 alt={dump.title}
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white bg-black/60 backdrop-blur-xs">

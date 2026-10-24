@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import type { DumpReport, HeatmapPoint } from './types';
+import { DumpPhoto } from './DumpPhoto';
 
 interface HeatmapViewProps {
   dumps: DumpReport[];
@@ -528,10 +529,9 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
 
             {/* Photo preview */}
             <div className="relative h-44 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-              <img
+              <DumpPhoto
                 src={selectedDump.imageUrl}
                 alt={selectedDump.title}
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider text-white shadow-xs backdrop-blur-md bg-black/60">
@@ -747,10 +747,9 @@ export const HeatmapView: React.FC<HeatmapViewProps> = ({
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
-                    <img
+                    <DumpPhoto
                       src={dump.imageUrl}
                       alt={dump.title}
-                      referrerPolicy="no-referrer"
                       className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200"
                     />
                     <div className="flex-1 min-w-0">

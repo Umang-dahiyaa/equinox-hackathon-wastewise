@@ -15,6 +15,7 @@ import {
   Truck,
 } from 'lucide-react';
 import type { DumpReport } from './types';
+import { DumpPhoto } from './DumpPhoto';
 
 interface GovernmentReportModalProps {
   dump: DumpReport | null;
@@ -234,10 +235,9 @@ export const GovernmentReportModal: React.FC<GovernmentReportModalProps> = ({
             <div className="space-y-4">
               {/* Evidence Snapshot Strip */}
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <img
+                <DumpPhoto
                   src={dump.imageUrl}
                   alt={dump.title}
-                  referrerPolicy="no-referrer"
                   className="w-16 h-16 rounded-lg object-cover border border-slate-200 shrink-0"
                 />
                 <div className="flex-1 min-w-0 text-xs">

@@ -89,7 +89,7 @@ export function registerDumpRoutes(app: Express, ai: GoogleGenAI | null) {
         id: 'dump-103',
         title: 'Discarded Vehicle Tires & Petroleum Grease Buckets',
         description: 'Ten passenger car tires piled in ditch with two unsealed buckets of used engine lubricant and rusty rim parts.',
-        imageUrl: 'https://images.unsplash.com/photo-1574974671999-24b7dfc15a39?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',
         location: {
           lat: baseLat + 0.0089,
           lng: baseLng + 0.0072,

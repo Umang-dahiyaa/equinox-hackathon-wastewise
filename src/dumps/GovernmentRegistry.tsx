@@ -14,6 +14,7 @@ import {
   Search,
 } from 'lucide-react';
 import type { DumpReport } from './types';
+import { DumpPhoto } from './DumpPhoto';
 
 interface GovernmentRegistryProps {
   dumps: DumpReport[];
@@ -178,10 +179,9 @@ export const GovernmentRegistry: React.FC<GovernmentRegistryProps> = ({
           >
             {/* Image Preview */}
             <div className="relative w-full md:w-56 h-40 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-              <img
+              <DumpPhoto
                 src={dump.imageUrl}
                 alt={dump.title}
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-black/70 text-white backdrop-blur-xs">
