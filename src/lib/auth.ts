@@ -1,0 +1,148 @@
+// Accounts on top of the anonymous guest sign-in.
+// Creating an account (email or Google) upgrades the current guest in place, so its uid,
+// points and leaderboard name carry over. Signing in to an existing account switches to it.
+
+import { useEffect, useState } from "react"
+import {
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  linkWithCredential,
+  linkWithPopup,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInAnonymously,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type User,
+} from "firebase/auth"
+import { auth, firebaseConfigured, watchUser } from "@/lib/firebase"
+
+export interface Account {
+  uid: string
+  isGuest: boolean
+  email: string | null
+  name: string | null
+  photo: string | null
+  verified: boolean
+  /** "password", "google.com" */
+  providers: string[]
+}
+
+function toAccount(u: User): Account {
+  return {
+    uid: u.uid,
+    isGuest: u.isAnonymous,
+    email: u.email,
+    name: u.displayName,
+    photo: u.photoURL,
+    verified: u.emailVerified,
+    providers: u.providerData.map((p) => p.providerId),
+  }
+}
+
+/** The signed-in account (a guest until the user signs in), or null while Firebase starts. */
+export function useAccount(): Account | null {
+  const [account, setAccount] = useState<Account | null>(() => (auth?.currentUser ? toAccount(auth.currentUser) : null))
+  useEffect(() => watchUser((u) => setAccount(u ? toAccount(u) : null)), [])
+  return account
+}
+
+export const accountsAvailable = firebaseConfigured
+
+function need() {
+  if (!auth) throw new AuthProblem("Accounts need the Firebase settings in .env.local.")
+  return auth
+}
+
+export class AuthProblem extends Error {}
+
+/** Firebase error codes in plain words. */
+export function authMessage(err: unknown): string {
+  if (err instanceof AuthProblem) return err.message
+  const code = (err as { code?: string })?.code ?? ""
+  const messages: Record<string, string> = {
+    "auth/invalid-email": "That email address doesn't look right.",
+    "auth/missing-password": "Enter a password.",
+    "auth/weak-password": "Use at least 6 characters for the password.",
+    "auth/email-already-in-use": "There's already an account with this email. Sign in instead.",
+    "auth/credential-already-in-use": "That account already exists. Sign in instead.",
+    "auth/invalid-credential": "Email or password is wrong.",
+    "auth/wrong-password": "Email or password is wrong.",
+    "auth/user-not-found": "No account with that email. Create one instead.",
+    "auth/too-many-requests": "Too many tries. Wait a minute and try again.",
+    "auth/network-request-failed": "No connection. Check your internet and try again.",
+    "auth/popup-closed-by-user": "The Google window was closed before signing in.",
+    "auth/cancelled-popup-request": "The Google window was closed before signing in.",
+    "auth/popup-blocked": "The browser blocked the Google window. Allow pop-ups and try again.",
+    "auth/operation-not-allowed": "This sign-in method isn't turned on in Firebase yet (Authentication → Sign-in method).",
+    "auth/unauthorized-domain": "This web address isn't allowed for Google sign-in in Firebase (Authentication → Settings → Authorized domains).",
+    "auth/requires-recent-login": "Please sign in again first.",
+  }
+  return messages[code] ?? "Something went wrong. Please try again."
+}
+
+/** New account with email + password. A guest is upgraded in place (same uid, keeps points). */
+export async function createAccount(email: string, password: string) {
+  const a = need()
+  const current = a.currentUser
+  const cred = current?.isAnonymous
+    ? await linkWithCredential(current, EmailAuthProvider.credential(email.trim(), password))
+    : await createUserWithEmailAndPassword(a, email.trim(), password)
+  await sendEmailVerification(cred.user).catch(() => {})
+  await cred.user.reload().catch(() => {})
+  return toAccount(a.currentUser ?? cred.user)
+}
+
+/** Sign in to an existing account (this device switches to that account's profile). */
+export async function signIn(email: string, password: string) {
+  const cred = await signInWithEmailAndPassword(need(), email.trim(), password)
+  return toAccount(cred.user)
+}
+
+/**
+ * Google: upgrades a guest in place; if that Google account already exists,
+ * switches to it instead (the guest's points stay with the guest).
+ */
+export async function continueWithGoogle(): Promise<{ account: Account; switched: boolean }> {
+  const a = need()
+  const provider = new GoogleAuthProvider()
+  provider.setCustomParameters({ prompt: "select_account" })
+  const current = a.currentUser
+  if (current?.isAnonymous) {
+    try {
+      const cred = await linkWithPopup(current, provider)
+      return { account: toAccount(cred.user), switched: false }
+    } catch (err) {
+      const code = (err as { code?: string }).code
+      if (code === "auth/credential-already-in-use" || code === "auth/email-already-in-use") {
+        const existing = GoogleAuthProvider.credentialFromError(err as never)
+        if (existing) {
+          const cred = await signInWithCredential(a, existing)
+          return { account: toAccount(cred.user), switched: true }
+        }
+      }
+      throw err
+    }
+  }
+  const cred = await signInWithPopup(a, provider)
+  return { account: toAccount(cred.user), switched: true }
+}
+
+export async function resetPassword(email: string) {
+  await sendPasswordResetEmail(need(), email.trim())
+}
+
+export async function resendVerification() {
+  const u = need().currentUser
+  if (u && !u.isAnonymous) await sendEmailVerification(u)
+}
+
+/** Sign out, then carry on as a fresh guest so scanning and points keep working. */
+export async function signOutToGuest() {
+  const a = need()
+  await signOut(a)
+  await signInAnonymously(a)
+}

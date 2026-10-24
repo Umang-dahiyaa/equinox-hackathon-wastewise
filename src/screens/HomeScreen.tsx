@@ -1,4 +1,4 @@
-import { Camera, History, MapPinned, MessageCircle, Recycle, Sparkles, Trophy, UserRound } from "lucide-react"
+import { Camera, History, MapPinned, MessageCircle, Recycle, Sparkles, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, Note, SectionTitle } from "@/components/ui/card"
 import { CampusGlobe } from "@/components/campus-globe"
@@ -6,6 +6,7 @@ import { LuluMascot } from "@/components/ui/LuluMascot"
 import { Logo } from "@/components/brand"
 import { IdentifyCard } from "@/components/identify-card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AccountAvatar } from "@/components/account-card"
 import { EcoTrackingCard, HistoryRow, LeaderboardPreviewCard } from "@/components/widgets"
 import { useMemo, useState } from "react"
 import { uuid } from "@/lib/utils"
@@ -45,7 +46,7 @@ export function HomeScreen() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <button onClick={() => navigate({ name: "profile" })} className="ww-press pill-glass grid h-11 w-11 place-items-center" aria-label="Profile">
-            <UserRound size={20} />
+            <AccountAvatar size={34} />
           </button>
         </div>
       </header>

@@ -39,11 +39,25 @@ leaderboard shows "not connected". No placeholder or fake numbers are ever shown
 ### Firebase
 
 1. Create a project, add a Web app, and copy its config into `.env.local`.
-2. Authentication → Sign-in method → enable **Anonymous**.
+2. Authentication → Sign-in method → enable **Anonymous**, **Email/Password** and **Google**.
 3. Create a Cloud Firestore database.
 4. Deploy the rules and indexes: `npx firebase-tools deploy --only firestore` (uses `firebase.json`,
    `firestore.rules`, `firestore.indexes.json`). Index builds take a few minutes; until then the
    leaderboard shows a "still being created" message.
+
+### Accounts
+
+Everyone starts as an anonymous guest, so scanning and points work without signing up. From
+Profile (or **Sign in** in the desktop top bar) people can create an account with email and
+password or Google; this upgrades the guest in place, so the same uid, points and leaderboard name
+carry over. Signing in to an existing account on another device switches to that account's
+profile. Sign out returns to a fresh guest. Scan history stays on each device. The code is in
+`src/lib/auth.ts` and `src/screens/AccountScreen.tsx`.
+
+To try accounts without touching the real project, run the Firebase Auth emulator
+(`npx firebase-tools emulators:start --only auth`, configured in `firebase.json`) and start the app
+with `VITE_FIREBASE_AUTH_EMULATOR=http://127.0.0.1:9099`. Firestore still points at the real
+project, which won't accept emulator sign-ins, so profiles fall back to on-device storage there.
 
 ## The waste guide
 

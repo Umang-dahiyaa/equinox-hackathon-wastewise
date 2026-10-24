@@ -4,6 +4,7 @@ import { fetchMyRank } from "@/lib/leaderboard"
 import { loadHistory, saveHistory } from "@/lib/history"
 import { levelFor, type Level } from "@/lib/levels"
 import type { ScoredAction } from "@/lib/points"
+import { watchUser } from "@/lib/firebase"
 import { scanLocation, type LatLng } from "@/lib/location"
 import type { ScrapKind } from "@/lib/scrap"
 import { cropThumbnail } from "@/lib/segment"
@@ -28,6 +29,7 @@ export type Screen =
   | { name: "dumps"; dumpId?: string }
   | { name: "kabadiwala"; kinds?: ScrapKind[]; from?: string }
   | { name: "cleaning" }
+  | { name: "account"; mode?: "create" | "signin" | "reset" }
 
 // Each screen has an address, so links like /app.html#leaderboard open it directly.
 // "#lulu" opens the chat on top of Home.
@@ -42,6 +44,7 @@ function screenFromHash(hash: string): { screen: Screen; chat: boolean } {
     case "dumps":
     case "kabadiwala":
     case "cleaning":
+    case "account":
       if (name === "history" && id) return { screen: { name: "historyDetail", id: decodeURIComponent(id) }, chat: false }
       return { screen: { name }, chat: false }
     case "lulu":
@@ -127,17 +130,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   profileRef.current = profile
 
   // ---------- profile ----------
+  const currentUid = useRef<string | null>(null)
   useEffect(() => {
     let unsub = () => {}
+    let stopWatching = () => {}
     let cancelled = false
     profileStore
       .init()
       .then((id) => {
         if (cancelled) return
+        currentUid.current = id
         setUid(id)
         unsub = profileStore.subscribe((p) => {
           setProfile(p)
           setProfileLoaded(true)
+        })
+        // signing in, out or switching accounts: follow the new account's profile
+        stopWatching = watchUser((user) => {
+          if (cancelled || !user || user.uid === currentUid.current) return
+          currentUid.current = user.uid
+          unsub()
+          profileStore.switchUser(user.uid)
+          setUid(user.uid)
+          setProfile(null)
+          setProfileLoaded(false)
+          unsub = profileStore.subscribe((p) => {
+            setProfile(p)
+            setProfileLoaded(true)
+          })
         })
       })
       .catch((err) => {
@@ -148,6 +168,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
       unsub()
+      stopWatching()
     }
   }, [])
 

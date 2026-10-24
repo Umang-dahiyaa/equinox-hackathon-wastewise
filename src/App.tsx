@@ -1,5 +1,6 @@
 import { LuluChat } from "@/chat/LuluChat"
 import { BottomNav, JoinSheet, LevelUpCard, LuluFab, Toasts, TopNav } from "@/components/app-chrome"
+import { AccountScreen } from "@/screens/AccountScreen"
 import { CleaningScreen } from "@/screens/CleaningScreen"
 import { DumpsScreen } from "@/screens/DumpsScreen"
 import { GuideScreen } from "@/screens/GuideScreen"
@@ -33,6 +34,8 @@ function CurrentScreen() {
       return <DumpsScreen key={screen.dumpId ?? "dumps"} dumpId={screen.dumpId} />
     case "cleaning":
       return <CleaningScreen />
+    case "account":
+      return <AccountScreen key={screen.mode ?? "account"} mode={screen.mode} />
     case "kabadiwala":
       return <KabadiwalaScreen key={`${screen.from ?? ""}:${screen.kinds?.join() ?? ""}`} kinds={screen.kinds} from={screen.from} />
   }

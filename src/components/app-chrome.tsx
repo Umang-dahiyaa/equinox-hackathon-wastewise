@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AccountButton } from "@/components/account-card"
 import { History, House, MapPinned, MessageCircle, ScanLine, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Mark } from "@/components/ui/card"
@@ -57,6 +58,7 @@ export function TopNav() {
           })}
         </nav>
         <ThemeToggle />
+        <AccountButton />
         <Button size="sm" className="shrink-0" onClick={() => setChatOpen(true)}>
           <MessageCircle size={16} /> Chat with Lulu
         </Button>

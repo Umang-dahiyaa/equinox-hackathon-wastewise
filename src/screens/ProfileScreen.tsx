@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { LuluMascot } from "@/components/ui/LuluMascot"
 import { LevelBadge } from "@/components/brand"
+import { AccountCard } from "@/components/account-card"
 import { ScanFootprint } from "@/components/scan-footprint"
 import { ThemeChoice } from "@/components/theme-toggle"
 import { Avatar, StatTile } from "@/components/widgets"
@@ -38,6 +39,8 @@ export function ProfileScreen() {
         </Button>
         <h1 className="display text-3xl">Profile</h1>
       </header>
+
+      <AccountCard className="lg:col-span-2" />
 
       {/* 1. User Identity & Current Level Card */}
       <Card index={0}>

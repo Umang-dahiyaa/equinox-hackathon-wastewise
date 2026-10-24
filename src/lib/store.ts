@@ -42,6 +42,8 @@ export interface SettingsPatch {
 export interface ProfileStore {
   mode: "firebase" | "local"
   init(): Promise<string | null>
+  /** Point the store at another signed-in account (after sign-in / sign-out). */
+  switchUser(uid: string): void
   subscribe(cb: (p: StoredProfile | null) => void): () => void
   fetch(): Promise<StoredProfile | null>
   join(name: string, avatar: string, show: boolean): Promise<Profile>
@@ -84,6 +86,9 @@ function firestoreStore(): ProfileStore {
     async init() {
       uid = await ensureAnonymousUser()
       return uid
+    },
+    switchUser(next) {
+      uid = next
     },
     subscribe(cb) {
       if (!uid) return () => {}
@@ -188,6 +193,9 @@ function localStore(): ProfileStore {
     async init() {
       return null
     },
+    switchUser() {
+      /* no accounts without Firebase */
+    },
     subscribe(cb) {
       listeners.add(cb)
       cb(read())
@@ -227,6 +235,13 @@ function hybridStore(): ProfileStore {
   return {
     get mode() {
       return useFallback ? "local" : "firebase"
+    },
+    switchUser(uid) {
+      fs.switchUser(uid)
+      // the cached profile belonged to the previous account
+      try {
+        localStorage.removeItem(LOCAL_KEY)
+      } catch {}
     },
     async init() {
       try {
