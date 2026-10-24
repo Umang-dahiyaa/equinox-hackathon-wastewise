@@ -13,6 +13,8 @@
   --color-mint: #DAE7C7;
   --color-ink: #101410;
   --color-sub: #5E5E61;
+  /* card surface (white in light theme) */
+  --color-card: #ffffff;
 
   /* status */
   --color-success: #2E7D4F;
@@ -28,6 +30,18 @@
 
   --shadow-soft: 0 6px 20px rgba(8, 72, 45, 0.07);
   --shadow-lift: 0 14px 36px rgba(8, 72, 45, 0.16);
+}
+
+/* surface details that change with the theme (see the dark theme below) */
+:root {
+  color-scheme: light;
+  --ww-line: rgba(8, 72, 45, 0.08);
+  --ww-line-strong: rgba(8, 72, 45, 0.15);
+  --ww-field: #ffffff;
+  --ww-placeholder: #8a8a8d;
+  --ww-glow: rgba(218, 231, 199, 0.95);
+  --ww-glow-soft: rgba(218, 231, 199, 0.35);
+  --ww-green-text: var(--color-green);
 }
 
 html,
@@ -78,8 +92,8 @@ p {
 
   /* white card on the off-white page — no heavy shadows */
   .glass {
-    background: #fff;
-    border: 1px solid rgba(8, 72, 45, 0.08);
+    background: var(--color-card);
+    border: 1px solid var(--ww-line);
     border-radius: 20px;
     box-shadow: var(--shadow-soft);
     color: var(--color-ink);
@@ -88,7 +102,7 @@ p {
   /* inner surface on a card */
   .tile {
     background: var(--color-page);
-    border: 1px solid rgba(8, 72, 45, 0.07);
+    border: 1px solid var(--ww-line);
     border-radius: 16px;
   }
 
@@ -102,20 +116,20 @@ p {
 
   /* white outline pill ("Log in") */
   .pill-glass {
-    background: #fff;
+    background: var(--color-card);
     color: var(--color-ink);
     border-radius: 999px;
-    box-shadow: inset 0 0 0 1px rgba(8, 72, 45, 0.14);
+    box-shadow: inset 0 0 0 1px var(--ww-line-strong);
   }
 
   .field {
-    background: #fff;
+    background: var(--ww-field);
     color: var(--color-ink);
-    border: 1px solid rgba(8, 72, 45, 0.15);
+    border: 1px solid var(--ww-line-strong);
     border-radius: 999px;
     outline: none;
   }
-  .field::placeholder { color: #8a8a8d; }
+  .field::placeholder { color: var(--ww-placeholder); }
   .field:focus { border-color: var(--color-green); box-shadow: 0 0 0 3px rgba(8, 72, 45, 0.1); }
 
   /* mint badge ("Trusted by 120,000+ indie makers") */
@@ -128,7 +142,7 @@ p {
     padding: 0.38em 0.95em;
     border-radius: 999px;
     background: var(--color-mint);
-    color: var(--color-green);
+    color: var(--ww-green-text);
     font-family: var(--font-sans);
     font-weight: 500;
     line-height: 1.1;
@@ -139,7 +153,7 @@ p {
   .note {
     font-family: var(--font-note);
     font-weight: 600;
-    color: var(--color-green);
+    color: var(--ww-green-text);
     line-height: 0.95;
   }
 
@@ -157,14 +171,14 @@ p {
   @media (hover: hover) {
     .lift:hover {
       transform: translateY(-2px);
-      border-color: rgba(8, 72, 45, 0.16);
-      box-shadow: 0 12px 28px rgba(8, 72, 45, 0.1);
+      border-color: var(--ww-line-strong);
+      box-shadow: var(--shadow-lift);
     }
   }
 
   /* soft mint halo behind hero elements and the globe */
   .mint-glow {
-    background: radial-gradient(closest-side, rgba(218, 231, 199, 0.95), rgba(218, 231, 199, 0.35) 62%, transparent 100%);
+    background: radial-gradient(closest-side, var(--ww-glow), var(--ww-glow-soft) 62%, transparent 100%);
   }
 
   .sky-sheet {
@@ -267,3 +281,89 @@ p {
   z-index: 250;
   mix-blend-mode: multiply;
 }
+
+/* ---------- small status chips used across screens ---------- */
+.chip-ai { background: #FFF4DE; color: #8A5300; }
+.chip-alert { background: #FFE9E6; color: #C0261B; }
+
+/* ---------- bin colours that need a light and a dark version (see src/lib/binColors.ts) ---------- */
+:root {
+  --bin-dry-text: #1453BF;      --bin-dry-soft: #E7EFFF;
+  --bin-wet-text: #11743A;      --bin-wet-soft: #E3F6E9;
+  --bin-hazardous-text: #C0261B; --bin-hazardous-soft: #FFE9E6;
+  --bin-reject-text: #475569;   --bin-reject-soft: #EEF1F5;
+  --bin-ewaste-text: #7232C2;   --bin-ewaste-soft: #F3EAFF;
+  --bin-unsorted-text: #A35F00; --bin-unsorted-soft: #FFF4DE;
+}
+
+/* ================= Dark theme ================= */
+/* Turned on by data-theme="dark" on <html> (src/lib/theme.ts); light is the default. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-page: #0C130F;
+  --color-card: #141D18;
+  --color-ink: #E7EEE9;
+  --color-sub: #9BA8A0;
+  --color-mint: #1C3326;
+  --color-green: #17784A;
+  --color-green-2: #1D8C57;
+  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 14px 36px rgba(0, 0, 0, 0.5);
+
+  --ww-line: rgba(255, 255, 255, 0.08);
+  --ww-line-strong: rgba(255, 255, 255, 0.14);
+  --ww-field: #101813;
+  --ww-placeholder: #6E7D75;
+  --ww-glow: rgba(60, 154, 78, 0.28);
+  --ww-glow-soft: rgba(60, 154, 78, 0.1);
+  --ww-green-text: #8EDBA9;
+
+  --bin-dry-text: #8DB6FF;      --bin-dry-soft: rgba(47, 128, 255, 0.16);
+  --bin-wet-text: #7FE0A3;      --bin-wet-soft: rgba(34, 197, 94, 0.15);
+  --bin-hazardous-text: #FF9A92; --bin-hazardous-soft: rgba(255, 65, 54, 0.16);
+  --bin-reject-text: #C3CCD8;   --bin-reject-soft: rgba(148, 163, 184, 0.16);
+  --bin-ewaste-text: #D3A8FF;   --bin-ewaste-soft: rgba(176, 92, 255, 0.18);
+  --bin-unsorted-text: #FFC966; --bin-unsorted-soft: rgba(255, 173, 31, 0.16);
+}
+/* green text on dark surfaces needs a lighter green than green buttons do */
+:root[data-theme="dark"] .text-green { color: var(--ww-green-text); }
+:root[data-theme="dark"] :focus-visible { outline-color: var(--ww-green-text); }
+:root[data-theme="dark"] .chip-ai { background: rgba(255, 173, 31, 0.16); color: #FFC966; }
+:root[data-theme="dark"] .chip-alert { background: rgba(255, 65, 54, 0.16); color: #FF9A92; }
+/* street maps go dark too (tiles only; pins keep their colours) */
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88); }
+:root[data-theme="dark"] .leaflet-container { background: #1a211d; }
+:root[data-theme="dark"] .leaflet-bar a { background: var(--color-card); color: var(--color-ink); border-color: var(--ww-line-strong); }
+:root[data-theme="dark"] .leaflet-control-attribution { background: rgba(20, 29, 24, 0.85); color: var(--color-sub); }
+
+/* Kunwar's Dumps components use fixed slate/tint classes; map the ones he uses for dark */
+:root[data-theme="dark"] .dumps-scope :is(.bg-white, .bg-white\/95, .bg-white\/70) { background-color: var(--color-card); }
+:root[data-theme="dark"] .dumps-scope .bg-slate-50 { background-color: #111914; }
+:root[data-theme="dark"] .dumps-scope .bg-slate-100 { background-color: #18221C; }
+:root[data-theme="dark"] .dumps-scope .bg-slate-200 { background-color: #223029; }
+:root[data-theme="dark"] .dumps-scope .text-slate-900 { color: #EEF3EF; }
+:root[data-theme="dark"] .dumps-scope .text-slate-800 { color: #E1E8E3; }
+:root[data-theme="dark"] .dumps-scope .text-slate-700 { color: #CAD3CD; }
+:root[data-theme="dark"] .dumps-scope .text-slate-600 { color: #AEB9B2; }
+:root[data-theme="dark"] .dumps-scope .text-slate-500 { color: #95A29A; }
+:root[data-theme="dark"] .dumps-scope .text-slate-400 { color: #7E8B84; }
+:root[data-theme="dark"] .dumps-scope .text-slate-300 { color: #5E6A64; }
+:root[data-theme="dark"] .dumps-scope :is(.border-slate-100, .border-slate-200) { border-color: rgba(255, 255, 255, 0.08); }
+:root[data-theme="dark"] .dumps-scope .border-slate-300 { border-color: rgba(255, 255, 255, 0.16); }
+:root[data-theme="dark"] .dumps-scope .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+:root[data-theme="dark"] .dumps-scope .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.18); }
+:root[data-theme="dark"] .dumps-scope .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1); }
+:root[data-theme="dark"] .dumps-scope .bg-blue-100 { background-color: rgba(59, 130, 246, 0.18); }
+:root[data-theme="dark"] .dumps-scope .bg-red-100 { background-color: rgba(239, 68, 68, 0.18); }
+:root[data-theme="dark"] .dumps-scope .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1); }
+:root[data-theme="dark"] .dumps-scope .bg-amber-100 { background-color: rgba(245, 158, 11, 0.18); }
+:root[data-theme="dark"] .dumps-scope :is(.text-emerald-700, .text-emerald-800) { color: #6EE7B7; }
+:root[data-theme="dark"] .dumps-scope :is(.text-emerald-900, .text-emerald-950) { color: #A7F3D0; }
+:root[data-theme="dark"] .dumps-scope :is(.text-blue-700, .text-blue-800, .text-blue-900) { color: #93C5FD; }
+:root[data-theme="dark"] .dumps-scope .text-red-700 { color: #FCA5A5; }
+:root[data-theme="dark"] .dumps-scope :is(.text-amber-700, .text-amber-900) { color: #FCD34D; }
+:root[data-theme="dark"] .dumps-scope :is(.border-emerald-200, .border-blue-200, .border-red-200, .border-amber-200) { border-color: rgba(255, 255, 255, 0.12); }
+:root[data-theme="dark"] .dumps-scope :is(.bg-red-50, .bg-red-50\/40) { background-color: rgba(239, 68, 68, 0.12); }
+:root[data-theme="dark"] .dumps-scope .bg-blue-50\/30 { background-color: rgba(59, 130, 246, 0.08); }
+:root[data-theme="dark"] .dumps-scope .bg-amber-50\/60 { background-color: rgba(245, 158, 11, 0.1); }
+:root[data-theme="dark"] .dumps-scope .border-emerald-200\/60 { border-color: rgba(255, 255, 255, 0.1); }

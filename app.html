@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#F5F8EF" />
+    <!-- apply the saved theme before first paint (light by default); see src/lib/theme.ts -->
+    <script>
+      try {
+        if (localStorage.getItem("wastewise.theme.v1") === "dark") {
+          document.documentElement.dataset.theme = "dark"
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0C130F")
+        }
+      } catch (e) {}
+    </script>
     <meta name="description" content="WasteWise — sort smarter, waste less. AI waste-sorting assistant for the Zenith campus." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

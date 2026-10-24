@@ -1,23 +1,32 @@
 // Colours for multi-item scans. Each bin keeps its real-world hue (blue bin = blue),
 // in a brighter "vivid" tone that stands out on photos, a "deep" tone that carries
-// white text, and a "soft" tint for backgrounds.
+// white text, and theme-aware "text" and "soft" tones (CSS variables in index.css,
+// with light and dark versions) for coloured text and tinted backgrounds.
 
 export interface BinTone {
   vivid: string
   deep: string
+  text: string
   soft: string
 }
 
+const tone = (key: string, vivid: string, deep: string): BinTone => ({
+  vivid,
+  deep,
+  text: `var(--bin-${key}-text)`,
+  soft: `var(--bin-${key}-soft)`,
+})
+
 const TONES: Record<string, BinTone> = {
-  dry: { vivid: "#2F80FF", deep: "#1453BF", soft: "#E7EFFF" },
-  wet: { vivid: "#22C55E", deep: "#11743A", soft: "#E3F6E9" },
-  hazardous: { vivid: "#FF4136", deep: "#C0261B", soft: "#FFE9E6" },
-  reject: { vivid: "#94A3B8", deep: "#475569", soft: "#EEF1F5" },
-  ewaste: { vivid: "#B05CFF", deep: "#7232C2", soft: "#F3EAFF" },
+  dry: tone("dry", "#2F80FF", "#1453BF"),
+  wet: tone("wet", "#22C55E", "#11743A"),
+  hazardous: tone("hazardous", "#FF4136", "#C0261B"),
+  reject: tone("reject", "#94A3B8", "#475569"),
+  ewaste: tone("ewaste", "#B05CFF", "#7232C2"),
 }
 
 /** Items the app couldn't place in a bin. */
-export const UNSORTED_TONE: BinTone = { vivid: "#FFAD1F", deep: "#A35F00", soft: "#FFF4DE" }
+export const UNSORTED_TONE: BinTone = tone("unsorted", "#FFAD1F", "#A35F00")
 
 export function binTone(categoryId: string | null | undefined): BinTone {
   return (categoryId && TONES[categoryId]) || UNSORTED_TONE

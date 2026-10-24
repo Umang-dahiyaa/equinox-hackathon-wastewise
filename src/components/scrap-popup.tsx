@@ -33,7 +33,7 @@ export function ScrapPopup({ find, onFind }: { find: ScrapFind; onFind: () => vo
           </p>
           <button
             onClick={onFind}
-            className="ww-press mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-green"
+            className="ww-press mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#08482D]"
           >
             Find kabadiwalas <ArrowRight size={16} />
           </button>

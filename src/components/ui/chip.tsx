@@ -11,7 +11,7 @@ export function Chip({ active, className, type = "button", ...props }: ChipProps
       type={type}
       className={cn(
         "ww-press inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors",
-        active ? "border-green bg-green text-white" : "border-green/15 bg-white text-ink hover:bg-mint/60",
+        active ? "border-green bg-green text-white" : "border-green/15 bg-card text-ink hover:bg-mint/60",
         className
       )}
       {...props}

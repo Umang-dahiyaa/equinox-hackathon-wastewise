@@ -122,7 +122,7 @@ export function DumpsScreen({ dumpId }: { dumpId?: string }) {
   }, [intro, loading, target, endIntro])
 
   return (
-    <div className="space-y-4 px-4 pt-4 pb-32 lg:pt-8 lg:pb-16">
+    <div className="dumps-scope space-y-4 px-4 pt-4 pb-32 lg:pt-8 lg:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold tracking-[0.14em] text-green uppercase">Community cleanup</p>
@@ -130,7 +130,7 @@ export function DumpsScreen({ dumpId }: { dumpId?: string }) {
           <p className="mt-0.5 text-sm text-sub">
             Report roadside dumps, see hotspots and track cleanup.
             {!loading && (
-              <span className="ml-1.5 inline-flex items-center rounded-full bg-[#FFE9E6] px-2 py-0.5 text-xs font-bold text-[#C0261B]">{active} active</span>
+              <span className="chip-alert ml-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold">{active} active</span>
             )}
           </p>
         </div>

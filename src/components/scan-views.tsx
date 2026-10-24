@@ -458,7 +458,7 @@ export function MultiResultView({
           {groups.map((g) => {
             const Icon = categoryIcon(g.key)
             return (
-              <li key={g.key} className="inline-flex items-center gap-1.5 rounded-full py-1 pr-1 pl-2.5 text-xs font-semibold" style={{ backgroundColor: g.tone.soft, color: g.tone.deep }}>
+              <li key={g.key} className="inline-flex items-center gap-1.5 rounded-full py-1 pr-1 pl-2.5 text-xs font-semibold" style={{ backgroundColor: g.tone.soft, color: g.tone.text }}>
                 <Icon size={14} aria-hidden />
                 {g.label}
                 <span className="grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold text-white" style={{ backgroundColor: g.tone.deep }}>
@@ -509,12 +509,12 @@ function BinGroupCard({ group, crops, active, onToggle }: { group: BinGroup; cro
           <Icon size={20} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="leading-tight font-bold" style={{ color: tone.deep }}>
+          <h3 className="leading-tight font-bold" style={{ color: tone.text }}>
             {group.label}
           </h3>
           <p className="text-xs text-sub">{group.bin}</p>
         </div>
-        <span className="text-xs font-semibold" style={{ color: tone.deep }}>
+        <span className="text-xs font-semibold" style={{ color: tone.text }}>
           {group.items.length} {group.items.length === 1 ? "item" : "items"}
         </span>
       </header>
@@ -539,16 +539,16 @@ function ItemRow({ cp, crop, open, onToggle }: { cp: ColoredPart; crop: string |
         onClick={onToggle}
         aria-expanded={open}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-black/[0.025]"
-        style={open ? { backgroundColor: tone.soft + "99" } : undefined}
+        style={open ? { backgroundColor: `color-mix(in srgb, ${tone.soft} 60%, transparent)` } : undefined}
       >
         <span
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-xs font-extrabold"
-          style={{ color: tone.deep, boxShadow: `inset 0 0 0 3px ${color}` }}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-card text-xs font-extrabold"
+          style={{ color: tone.text, boxShadow: `inset 0 0 0 3px ${color}` }}
         >
           {cp.index + 1}
         </span>
         <span className="shrink-0 rounded-[13px] p-[2px]" style={{ backgroundColor: color }}>
-          <Thumb src={crop} size={48} className="rounded-[11px] bg-white" />
+          <Thumb src={crop} size={48} className="rounded-[11px] bg-card" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold capitalize text-ink">{part.ai.item}</span>
@@ -556,7 +556,7 @@ function ItemRow({ cp, crop, open, onToggle }: { cp: ColoredPart; crop: string |
             {part.ai.material && <span className="truncate">{part.ai.material}</span>}
             {ruleId &&
               (ruleId === AI_RULE_ID ? (
-                <span className="rounded-full bg-[#FFF4DE] px-2 py-0.5 text-[10px] font-bold text-[#8A5300]">AI-suggested</span>
+                <span className="chip-ai rounded-full px-2 py-0.5 text-[10px] font-bold">AI-suggested</span>
               ) : (
                 <span className="rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-green">Guide §{ruleId}</span>
               ))}

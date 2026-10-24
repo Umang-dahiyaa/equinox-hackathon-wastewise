@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { History, House, MapPinned, MessageCircle, ScanLine, Trophy, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Mark } from "@/components/ui/card"
@@ -55,6 +56,7 @@ export function TopNav() {
             )
           })}
         </nav>
+        <ThemeToggle />
         <Button size="sm" className="shrink-0" onClick={() => setChatOpen(true)}>
           <MessageCircle size={16} /> Chat with Lulu
         </Button>
@@ -67,7 +69,7 @@ export function BottomNav() {
   const { screen, navigate } = useApp()
   const current = screen.name === "historyDetail" ? "history" : screen.name
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[480px] md:max-w-[720px] lg:hidden border-t border-green/10 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Main">
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[480px] md:max-w-[720px] lg:hidden border-t border-green/10 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Main">
       <ul className="grid grid-cols-6">
         {NAV.map(({ name, label, icon: Icon }) => {
           const active = current === name
@@ -126,7 +128,7 @@ export function Toasts() {
             !reduced && "ww-toast",
             t.tone === "points" && "pill px-6 text-base",
             t.tone === "happy" && "pill",
-            t.tone === "info" && "pill-glass bg-white",
+            t.tone === "info" && "pill-glass",
             t.tone === "error" && "bg-cat-hazardous text-white"
           )}
           style={t.tone === "error" ? { animationDuration: "4.2s" } : undefined}

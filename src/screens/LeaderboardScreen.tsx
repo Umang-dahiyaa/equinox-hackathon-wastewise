@@ -46,7 +46,7 @@ export function LeaderboardScreen() {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={cn("h-11 rounded-full text-sm font-semibold transition-colors", tab === t ? "bg-white text-ink shadow-soft" : "text-ink")}
+            className={cn("h-11 rounded-full text-sm font-semibold transition-colors", tab === t ? "bg-mint text-green shadow-soft" : "text-sub")}
           >
             {t === "week" ? "This Week" : "All Time"}
           </button>

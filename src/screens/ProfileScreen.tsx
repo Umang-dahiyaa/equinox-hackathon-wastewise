@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch"
 import { LuluMascot } from "@/components/ui/LuluMascot"
 import { LevelBadge } from "@/components/brand"
 import { ScanFootprint } from "@/components/scan-footprint"
+import { ThemeChoice } from "@/components/theme-toggle"
 import { Avatar, StatTile } from "@/components/widgets"
 import { useMyRank } from "@/hooks/useLeaderboard"
 import { useStats } from "@/hooks/useStats"
@@ -236,6 +237,16 @@ export function ProfileScreen() {
         </div>
       </Card>
 
+      <Card index={6} className="lg:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="display text-lg">Appearance</h2>
+            <p className="text-xs text-sub">Light is the default. Your choice is saved on this device.</p>
+          </div>
+          <ThemeChoice />
+        </div>
+      </Card>
+
       {profile && (
         <Card index={6} className="lg:col-span-2">
           <h2 className="display mb-3 text-lg">Settings</h2>
@@ -350,7 +361,7 @@ export function NicknameFields({ name, setName, avatar, setAvatar, error }: { na
               onClick={() => setAvatar(e)}
               aria-label={`Avatar ${e}`}
               aria-pressed={avatar === e}
-              className={cn("ww-press grid h-12 w-12 place-items-center rounded-full bg-white text-2xl shadow-soft", avatar === e && "ring-4 ring-green")}
+              className={cn("ww-press grid h-12 w-12 place-items-center rounded-full bg-card text-2xl shadow-soft", avatar === e && "ring-4 ring-green")}
             >
               {e}
             </button>

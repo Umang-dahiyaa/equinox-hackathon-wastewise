@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils"
 /** A forest-green leaf inside a circular arrow. */
 export function Logo({ size = 36 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true">
-      <path d="M16 4.5a11.5 11.5 0 1 0 11.2 8.8" fill="none" stroke="#08482D" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M27.8 8.4l-.5 5-4.8-1.4" fill="none" stroke="#08482D" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10.5 21.5c0-6.4 4.3-10.2 10.8-10.2 0 6.4-3.9 10.7-10.8 10.2Z" fill="#08482D" />
-      <path d="M12.2 19.9c2.2-2.6 4.3-4.3 7-5.9" stroke="#DAE7C7" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    // forest green in the light theme, lighter green in the dark one (text-green follows the theme)
+    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true" className="text-green">
+      <path d="M16 4.5a11.5 11.5 0 1 0 11.2 8.8" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M27.8 8.4l-.5 5-4.8-1.4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.5 21.5c0-6.4 4.3-10.2 10.8-10.2 0 6.4-3.9 10.7-10.8 10.2Z" fill="currentColor" />
+      <path d="M12.2 19.9c2.2-2.6 4.3-4.3 7-5.9" stroke="var(--color-mint)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
     </svg>
   )
 }

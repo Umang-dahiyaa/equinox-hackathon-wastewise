@@ -5,6 +5,7 @@ import { CampusGlobe } from "@/components/campus-globe"
 import { LuluMascot } from "@/components/ui/LuluMascot"
 import { Logo } from "@/components/brand"
 import { IdentifyCard } from "@/components/identify-card"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { EcoTrackingCard, HistoryRow, LeaderboardPreviewCard } from "@/components/widgets"
 import { useMemo, useState } from "react"
 import { uuid } from "@/lib/utils"
@@ -41,9 +42,12 @@ export function HomeScreen() {
             <p className="mt-1 text-xs text-sub">Sort smarter. Waste less.</p>
           </div>
         </div>
-        <button onClick={() => navigate({ name: "profile" })} className="ww-press pill-glass grid h-11 w-11 place-items-center" aria-label="Profile">
-          <UserRound size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => navigate({ name: "profile" })} className="ww-press pill-glass grid h-11 w-11 place-items-center" aria-label="Profile">
+            <UserRound size={20} />
+          </button>
+        </div>
       </header>
 
       {/* 2. Greeting — the Reelmark headline block */}

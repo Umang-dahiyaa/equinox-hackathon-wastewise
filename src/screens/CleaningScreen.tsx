@@ -195,7 +195,7 @@ function ProviderCard({ p }: { p: CleaningProvider }) {
 
       <ul className="flex flex-wrap gap-1.5" aria-label="Services">
         {p.services.map((s) => (
-          <li key={s} className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-sub ring-1 ring-green/10">
+          <li key={s} className="rounded-full bg-card/70 px-2.5 py-1 text-[11px] font-semibold text-sub ring-1 ring-green/10">
             {s}
           </li>
         ))}
